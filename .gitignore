@@ -101,3 +101,10 @@ Scripts/
 
 # Support for uv.lock will come in a future PR. See #4796
 uv.lock
+
+# Local integration credentials and Telegram account sessions
+.local/
+doc
+
+# Local reference repositories; native implementations live in src/telegram.
+/ref/

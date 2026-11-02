@@ -142,6 +142,13 @@ HandledTypes = TypeVar("HandledTypes", bound=Message | CallbackQuery | ChatFullI
 KT = TypeVar("KT", bound=ReplyMarkup)
 
 
+if TYPE_CHECKING:
+    from telegram import (
+        EphemeralMessageParameters,
+        InputRichMessage,
+    )
+
+
 class ExtBot(Bot, Generic[RLARGS]):
     """This object represents a Telegram Bot with convenience extensions.
 
@@ -311,6 +318,272 @@ class ExtBot(Bot, Generic[RLARGS]):
              :paramref:`~telegram.ext.ExtBot.arbitrary_callback_data` is set to :obj:`False`.
         """
         return self._callback_data_cache
+
+    async def send_rich_message(
+        self,
+        chat_id: "int | str",
+        rich_message: "InputRichMessage",
+        business_connection_id: "str | None" = None,
+        message_thread_id: "int | None" = None,
+        direct_messages_topic_id: "int | None" = None,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
+        disable_notification: "ODVInput[bool]" = DEFAULT_NONE,
+        protect_content: "ODVInput[bool]" = DEFAULT_NONE,
+        allow_paid_broadcast: "bool | None" = None,
+        message_effect_id: "str | None" = None,
+        suggested_post_parameters: "SuggestedPostParameters | None" = None,
+        reply_parameters: "ReplyParameters | None" = None,
+        reply_markup: "ReplyMarkup | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+        rate_limit_args: RLARGS | None = None,
+    ) -> "Message":
+        return await super().send_rich_message(
+            chat_id=chat_id,
+            rich_message=rich_message,
+            business_connection_id=business_connection_id,
+            message_thread_id=message_thread_id,
+            direct_messages_topic_id=direct_messages_topic_id,
+            ephemeral_message_parameters=ephemeral_message_parameters,
+            disable_notification=disable_notification,
+            protect_content=protect_content,
+            allow_paid_broadcast=allow_paid_broadcast,
+            message_effect_id=message_effect_id,
+            suggested_post_parameters=suggested_post_parameters,
+            reply_parameters=reply_parameters,
+            reply_markup=reply_markup,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
+        )
+
+    async def send_rich_message_draft(
+        self,
+        chat_id: "int",
+        draft_id: "int",
+        rich_message: "InputRichMessage",
+        message_thread_id: "int | None" = None,
+        can_stop: "bool | None" = None,
+        keep_on_stop: "bool | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+        rate_limit_args: RLARGS | None = None,
+    ) -> bool:
+        return await super().send_rich_message_draft(
+            chat_id=chat_id,
+            draft_id=draft_id,
+            rich_message=rich_message,
+            message_thread_id=message_thread_id,
+            can_stop=can_stop,
+            keep_on_stop=keep_on_stop,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
+        )
+
+    async def answer_chat_join_request_query(
+        self,
+        chat_join_request_query_id: "str",
+        result: "str",
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+        rate_limit_args: RLARGS | None = None,
+    ) -> bool:
+        return await super().answer_chat_join_request_query(
+            chat_join_request_query_id=chat_join_request_query_id,
+            result=result,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
+        )
+
+    async def send_chat_join_request_web_app(
+        self,
+        chat_join_request_query_id: "str",
+        web_app_url: "str",
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+        rate_limit_args: RLARGS | None = None,
+    ) -> bool:
+        return await super().send_chat_join_request_web_app(
+            chat_join_request_query_id=chat_join_request_query_id,
+            web_app_url=web_app_url,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
+        )
+
+    async def edit_ephemeral_message_text(
+        self,
+        chat_id: "int | str",
+        receiver_user_id: "int",
+        ephemeral_message_id: "int",
+        text: "str | None" = None,
+        parse_mode: "ODVInput[str]" = DEFAULT_NONE,
+        entities: "Sequence[MessageEntity] | None" = None,
+        rich_message: "InputRichMessage | None" = None,
+        link_preview_options: "ODVInput[LinkPreviewOptions]" = DEFAULT_NONE,
+        reply_markup: "InlineKeyboardMarkup | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+        rate_limit_args: RLARGS | None = None,
+    ) -> bool:
+        return await super().edit_ephemeral_message_text(
+            chat_id=chat_id,
+            receiver_user_id=receiver_user_id,
+            ephemeral_message_id=ephemeral_message_id,
+            text=text,
+            parse_mode=parse_mode,
+            entities=entities,
+            rich_message=rich_message,
+            link_preview_options=link_preview_options,
+            reply_markup=reply_markup,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
+        )
+
+    async def edit_ephemeral_message_media(
+        self,
+        chat_id: "int | str",
+        receiver_user_id: "int",
+        ephemeral_message_id: "int",
+        media: "InputMedia",
+        reply_markup: "InlineKeyboardMarkup | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+        rate_limit_args: RLARGS | None = None,
+    ) -> bool:
+        return await super().edit_ephemeral_message_media(
+            chat_id=chat_id,
+            receiver_user_id=receiver_user_id,
+            ephemeral_message_id=ephemeral_message_id,
+            media=media,
+            reply_markup=reply_markup,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
+        )
+
+    async def edit_ephemeral_message_caption(
+        self,
+        chat_id: "int | str",
+        receiver_user_id: "int",
+        ephemeral_message_id: "int",
+        caption: "str | None" = None,
+        parse_mode: "ODVInput[str]" = DEFAULT_NONE,
+        caption_entities: "Sequence[MessageEntity] | None" = None,
+        show_caption_above_media: "bool | None" = None,
+        reply_markup: "InlineKeyboardMarkup | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+        rate_limit_args: RLARGS | None = None,
+    ) -> bool:
+        return await super().edit_ephemeral_message_caption(
+            chat_id=chat_id,
+            receiver_user_id=receiver_user_id,
+            ephemeral_message_id=ephemeral_message_id,
+            caption=caption,
+            parse_mode=parse_mode,
+            caption_entities=caption_entities,
+            show_caption_above_media=show_caption_above_media,
+            reply_markup=reply_markup,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
+        )
+
+    async def edit_ephemeral_message_reply_markup(
+        self,
+        chat_id: "int | str",
+        receiver_user_id: "int",
+        ephemeral_message_id: "int",
+        reply_markup: "InlineKeyboardMarkup | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+        rate_limit_args: RLARGS | None = None,
+    ) -> bool:
+        return await super().edit_ephemeral_message_reply_markup(
+            chat_id=chat_id,
+            receiver_user_id=receiver_user_id,
+            ephemeral_message_id=ephemeral_message_id,
+            reply_markup=reply_markup,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
+        )
+
+    async def delete_ephemeral_message(
+        self,
+        chat_id: "int | str",
+        receiver_user_id: "int",
+        ephemeral_message_id: "int",
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+        rate_limit_args: RLARGS | None = None,
+    ) -> bool:
+        return await super().delete_ephemeral_message(
+            chat_id=chat_id,
+            receiver_user_id=receiver_user_id,
+            ephemeral_message_id=ephemeral_message_id,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
+        )
 
     async def initialize(self) -> None:
         """See :meth:`telegram.Bot.initialize`. Also initializes the
@@ -1743,7 +2016,7 @@ class ExtBot(Bot, Generic[RLARGS]):
 
     async def edit_message_text(
         self,
-        text: str,
+        text: str | None = None,
         chat_id: str | int | None = None,
         message_id: int | None = None,
         inline_message_id: str | None = None,
@@ -1753,6 +2026,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         link_preview_options: ODVInput["LinkPreviewOptions"] = DEFAULT_NONE,
         business_connection_id: str | None = None,
         *,
+        rich_message: "InputRichMessage | None" = None,
         disable_web_page_preview: bool | None = None,
         read_timeout: ODVInput[float] = DEFAULT_NONE,
         write_timeout: ODVInput[float] = DEFAULT_NONE,
@@ -1777,6 +2051,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             pool_timeout=pool_timeout,
             api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
             link_preview_options=link_preview_options,
+            rich_message=rich_message,
         )
 
     async def export_chat_invite_link(
@@ -2402,6 +2677,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         can_manage_direct_messages: bool | None = None,
         can_manage_tags: bool | None = None,
         *,
+        can_send_welcome_messages: "bool | None" = None,
         read_timeout: ODVInput[float] = DEFAULT_NONE,
         write_timeout: ODVInput[float] = DEFAULT_NONE,
         connect_timeout: ODVInput[float] = DEFAULT_NONE,
@@ -2434,6 +2710,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             connect_timeout=connect_timeout,
             pool_timeout=pool_timeout,
             api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
+            can_send_welcome_messages=can_send_welcome_messages,
         )
 
     async def reopen_forum_topic(
@@ -2532,6 +2809,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -2572,6 +2850,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             show_caption_above_media=show_caption_above_media,
             direct_messages_topic_id=direct_messages_topic_id,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def send_audio(
@@ -2596,6 +2875,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -2634,6 +2914,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=direct_messages_topic_id,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def send_chat_action(
@@ -2680,6 +2961,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         contact: "Contact | None" = None,
@@ -2714,6 +2996,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             direct_messages_topic_id=direct_messages_topic_id,
             allow_paid_broadcast=allow_paid_broadcast,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def send_checklist(
@@ -2848,6 +3131,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -2884,6 +3168,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=direct_messages_topic_id,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def send_game(
@@ -3032,6 +3317,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         location: "Location | None" = None,
@@ -3068,6 +3354,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=direct_messages_topic_id,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def send_media_group(
@@ -3138,6 +3425,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         disable_web_page_preview: bool | None = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
@@ -3172,6 +3460,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=direct_messages_topic_id,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def send_message_draft(
@@ -3182,6 +3471,8 @@ class ExtBot(Bot, Generic[RLARGS]):
         message_thread_id: int | None = None,
         parse_mode: ODVInput[str] = DEFAULT_NONE,
         entities: Sequence["MessageEntity"] | None = None,
+        can_stop: bool | None = None,
+        keep_on_stop: bool | None = None,
         *,
         read_timeout: ODVInput[float] = DEFAULT_NONE,
         write_timeout: ODVInput[float] = DEFAULT_NONE,
@@ -3197,6 +3488,8 @@ class ExtBot(Bot, Generic[RLARGS]):
             message_thread_id=message_thread_id,
             parse_mode=parse_mode,
             entities=entities,
+            can_stop=can_stop,
+            keep_on_stop=keep_on_stop,
             read_timeout=read_timeout,
             write_timeout=write_timeout,
             connect_timeout=connect_timeout,
@@ -3224,6 +3517,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -3260,6 +3554,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             show_caption_above_media=show_caption_above_media,
             direct_messages_topic_id=direct_messages_topic_id,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def send_poll(
@@ -3368,6 +3663,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         read_timeout: ODVInput[float] = DEFAULT_NONE,
@@ -3398,6 +3694,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=direct_messages_topic_id,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def send_venue(
@@ -3422,6 +3719,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         venue: "Venue | None" = None,
@@ -3460,6 +3758,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=direct_messages_topic_id,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def send_video(
@@ -3489,6 +3788,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -3532,6 +3832,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             show_caption_above_media=show_caption_above_media,
             direct_messages_topic_id=direct_messages_topic_id,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def send_video_note(
@@ -3552,6 +3853,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -3586,6 +3888,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=direct_messages_topic_id,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def send_voice(
@@ -3607,6 +3910,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -3642,6 +3946,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             direct_messages_topic_id=direct_messages_topic_id,
             allow_paid_broadcast=allow_paid_broadcast,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def set_chat_administrator_custom_title(
@@ -5718,6 +6023,7 @@ class ExtBot(Bot, Generic[RLARGS]):
         reply_parameters: "ReplyParameters | None" = None,
         reply_markup: "ReplyMarkup | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         filename: str | None = None,
@@ -5756,6 +6062,7 @@ class ExtBot(Bot, Generic[RLARGS]):
             connect_timeout=connect_timeout,
             pool_timeout=pool_timeout,
             api_kwargs=self._merge_api_rl_kwargs(api_kwargs, rate_limit_args),
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def delete_message_reaction(
@@ -5812,6 +6119,16 @@ class ExtBot(Bot, Generic[RLARGS]):
     getMe = get_me
     sendMessage = send_message
     sendMessageDraft = send_message_draft
+    sendRichMessage = send_rich_message
+    sendRichMessageDraft = send_rich_message_draft
+    answerChatJoinRequestQuery = answer_chat_join_request_query
+    sendChatJoinRequestWebApp = send_chat_join_request_web_app
+    editEphemeralMessageText = edit_ephemeral_message_text
+    editEphemeralMessageMedia = edit_ephemeral_message_media
+    editEphemeralMessageCaption = edit_ephemeral_message_caption
+    editEphemeralMessageReplyMarkup = edit_ephemeral_message_reply_markup
+    deleteEphemeralMessage = delete_ephemeral_message
+
     deleteMessage = delete_message
     deleteMessages = delete_messages
     forwardMessage = forward_message

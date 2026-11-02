@@ -238,6 +238,10 @@ class ChatMemberAdministrator(ChatMember):
 
             .. versionadded:: 22.7
 
+        can_send_welcome_messages (:obj:`bool`, optional): True , if the administrator can manage
+            chat
+            welcome messages or directly send them in the case of bots
+
     Attributes:
         status (:obj:`str`): The member's status in the chat,
             always :tg-const:`telegram.ChatMember.ADMINISTRATOR`.
@@ -306,6 +310,8 @@ class ChatMemberAdministrator(ChatMember):
             value of :attr:`can_pin_messages`.
 
             .. versionadded:: 22.7
+        can_send_welcome_messages (:obj:`bool`): Optional.
+            See the corresponding constructor argument.
     """
 
     __slots__ = (
@@ -326,6 +332,7 @@ class ChatMemberAdministrator(ChatMember):
         "can_post_stories",
         "can_promote_members",
         "can_restrict_members",
+        "can_send_welcome_messages",
         "custom_title",
         "is_anonymous",
     )
@@ -353,6 +360,7 @@ class ChatMemberAdministrator(ChatMember):
         can_manage_direct_messages: bool | None = None,
         can_manage_tags: bool | None = None,
         *,
+        can_send_welcome_messages: "bool | None" = None,
         api_kwargs: JSONDict | None = None,
     ):
         super().__init__(status=ChatMember.ADMINISTRATOR, user=user, api_kwargs=api_kwargs)
@@ -377,6 +385,8 @@ class ChatMemberAdministrator(ChatMember):
             self.custom_title: str | None = custom_title
             self.can_manage_direct_messages: bool | None = can_manage_direct_messages
             self.can_manage_tags: bool | None = can_manage_tags
+        with self._unfrozen():
+            self.can_send_welcome_messages: bool | None = can_send_welcome_messages
 
 
 class ChatMemberMember(ChatMember):

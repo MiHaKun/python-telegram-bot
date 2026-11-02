@@ -30,6 +30,7 @@ from telegram._choseninlineresult import ChosenInlineResult
 from telegram._inline.inlinequery import InlineQuery
 from telegram._managedbot import ManagedBotUpdated
 from telegram._message import Message
+from telegram._messagegenerationstopped import MessageGenerationStopped
 from telegram._messagereactionupdated import MessageReactionCountUpdated, MessageReactionUpdated
 from telegram._paidmedia import PaidMediaPurchased
 from telegram._payment.precheckoutquery import PreCheckoutQuery
@@ -41,6 +42,10 @@ from telegram._utils.warnings import warn
 
 if TYPE_CHECKING:
     from telegram import Chat, User
+
+
+if TYPE_CHECKING:
+    from telegram import BotSubscriptionUpdated
 
 
 class Update(TelegramObject):
@@ -174,6 +179,13 @@ class Update(TelegramObject):
             .. versionadded:: 22.8
 
 
+        stopped_message_generation (:class:`telegram.MessageGenerationStopped`, optional):
+            A user stopped message generation. Handle with :class:`telegram.ext.TypeHandler`.
+
+        subscription (:class:`telegram.BotSubscriptionUpdated`, optional): Optional . User payment
+            subscription has
+            changed
+
     Attributes:
         update_id (:obj:`int`): The update's unique identifier. Update identifiers start from a
             certain positive number and increase sequentially. This ID becomes especially handy if
@@ -294,6 +306,10 @@ class Update(TelegramObject):
             :meth:`telegram.Bot.answerGuestQuery` to send a message in response.
 
             .. versionadded:: 22.8
+        stopped_message_generation (:class:`telegram.MessageGenerationStopped`): Optional.
+            A user stopped message generation.
+        subscription (:class:`telegram.BotSubscriptionUpdated`): Optional.
+            See the corresponding constructor argument.
     """
 
     __slots__ = (
@@ -326,6 +342,8 @@ class Update(TelegramObject):
         "purchased_paid_media",
         "removed_chat_boost",
         "shipping_query",
+        "stopped_message_generation",
+        "subscription",
         "update_id",
     )
 
@@ -435,6 +453,12 @@ class Update(TelegramObject):
     .. versionadded:: 22.8
     """
 
+    STOPPED_MESSAGE_GENERATION: Final[str] = constants.UpdateType.STOPPED_MESSAGE_GENERATION
+    """:const:`telegram.constants.UpdateType.STOPPED_MESSAGE_GENERATION`"""
+
+    SUBSCRIPTION: Final[str] = constants.UpdateType.SUBSCRIPTION
+    """Updates about payment subscription state."""
+
     ALL_TYPES: Final[list[str]] = list(constants.UpdateType)
     """list[:obj:`str`]: A list of all available update types.
 
@@ -468,7 +492,9 @@ class Update(TelegramObject):
         purchased_paid_media: PaidMediaPurchased | None = None,
         managed_bot: ManagedBotUpdated | None = None,
         guest_message: Message | None = None,
+        stopped_message_generation: MessageGenerationStopped | None = None,
         *,
+        subscription: "BotSubscriptionUpdated | None" = None,
         api_kwargs: JSONDict | None = None,
     ):
         super().__init__(api_kwargs=api_kwargs)
@@ -500,6 +526,9 @@ class Update(TelegramObject):
         self.purchased_paid_media: PaidMediaPurchased | None = purchased_paid_media
         self.managed_bot: ManagedBotUpdated | None = managed_bot
         self.guest_message: Message | None = guest_message
+        self.stopped_message_generation: MessageGenerationStopped | None = (
+            stopped_message_generation
+        )
 
         self._effective_user: User | None = None
         self._effective_sender: User | Chat | None = None
@@ -508,6 +537,7 @@ class Update(TelegramObject):
 
         self._id_attrs = (self.update_id,)
 
+        self.subscription: BotSubscriptionUpdated | None = subscription
         self._freeze()
 
     @property
@@ -600,6 +630,9 @@ class Update(TelegramObject):
 
         elif self.managed_bot:
             user = self.managed_bot.user
+
+        if user is None and self.subscription is not None:
+            user = self.subscription.user
 
         self._effective_user = user
         return user
@@ -729,6 +762,9 @@ class Update(TelegramObject):
 
         elif self.message_reaction_count:
             chat = self.message_reaction_count.chat
+
+        if chat is None and self.stopped_message_generation is not None:
+            chat = self.stopped_message_generation.chat
 
         self._effective_chat = chat
         return chat

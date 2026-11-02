@@ -25,6 +25,7 @@ from collections.abc import Sequence
 from html import escape
 from typing import TYPE_CHECKING, ClassVar, Self, TypedDict, cast
 
+from telegram._botapi103 import RichMessage
 from telegram._chat import Chat
 from telegram._chatbackground import ChatBackground
 from telegram._chatboost import ChatBoostAdded
@@ -75,7 +76,7 @@ from telegram._story import Story
 from telegram._telegramobject import TelegramObject
 from telegram._uniquegift import UniqueGiftInfo
 from telegram._user import User
-from telegram._utils.argumentparsing import parse_sequence_arg
+from telegram._utils.argumentparsing import parse_lpo_and_dwpp, parse_sequence_arg
 from telegram._utils.datetime import to_timestamp
 from telegram._utils.defaultvalue import DEFAULT_NONE, DefaultValue
 from telegram._utils.entities import parse_message_entities, parse_message_entity
@@ -134,6 +135,16 @@ if TYPE_CHECKING:
         TextQuote,
     )
     from telegram._utils.types import FileInput, ReplyMarkup
+
+
+if TYPE_CHECKING:
+    from telegram import (
+        CommunityChatAdded,
+        CommunityChatJoined,
+        CommunityChatRemoved,
+        EphemeralMessageParameters,
+        InputRichMessage,
+    )
 
 
 class _ReplyKwargs(TypedDict):
@@ -252,23 +263,12 @@ class InaccessibleMessage(MaybeInaccessibleMessage):
 
 
 class Message(MaybeInaccessibleMessage):
-    __REMOVED_API_FIELDS__: ClassVar[frozenset[str]] = frozenset(
-        {
-            "user_shared",
-            "forward_from",
-            "forward_from_chat",
-            "forward_from_message_id",
-            "forward_signature",
-            "forward_sender_name",
-            "forward_date",
-        }
-    )
-
     # fmt: off
     """This object represents a message.
 
     Objects of this class are comparable in terms of equality. Two objects of this class are
     considered equal, if their :attr:`message_id` and :attr:`chat` are equal.
+    Ephemeral messages additionally compare :attr:`ephemeral_message_id` and :attr:`receiver_user`.
 
     Note:
         In Python :keyword:`from` is a reserved word. Use :paramref:`from_user` instead.
@@ -298,6 +298,18 @@ class Message(MaybeInaccessibleMessage):
           and notice that some positional arguments changed position as a result.
 
     Args:
+        receiver_user (:class:`telegram.User`, optional): For ephemeral messages, the user who
+            received the message.
+        ephemeral_message_id (:obj:`int`, optional): Identifier of an ephemeral message. Its
+            message_id is zero; this identifier may be reused after expiration.
+        rich_message (:class:`telegram.RichMessage`, optional): Rich content containing typed
+            blocks and entities.
+        community_chat_added (:class:`telegram.CommunityChatAdded`, optional): Service message: a
+            chat or bot was added to a community.
+        community_chat_joined (:class:`telegram.CommunityChatJoined`, optional): Service message:
+            the chat joined a community.
+        community_chat_removed (:class:`telegram.CommunityChatRemoved`, optional): Service
+            message: a chat or bot was removed from a community.
         message_id (:obj:`int`): Unique message identifier inside this chat. In specific instances
             (e.g., message containing a video sent to a big chat), the server might automatically
             schedule a message instead of sending it immediately. In such cases, this field will be
@@ -343,7 +355,8 @@ class Message(MaybeInaccessibleMessage):
             0-:tg-const:`telegram.constants.MessageLimit.MAX_TEXT_LENGTH` characters.
         entities (Sequence[:class:`telegram.MessageEntity`], optional): For text messages, special
             entities like usernames, URLs, bot commands, etc. that appear in the text. See
-            :attr:`parse_entity` and :attr:`parse_entities` methods for how to use properly.
+            :meth:`telegram.Message.parse_entity` and :meth:`telegram.Message.parse_entities`
+            methods for how to use properly.
             This list is empty if the message does not contain entities.
 
             .. versionchanged:: 20.0
@@ -735,6 +748,18 @@ class Message(MaybeInaccessibleMessage):
             .. versionadded:: 22.8
 
     Attributes:
+        receiver_user (:class:`telegram.User`): Optional. For ephemeral messages, the user who
+            received the message.
+        ephemeral_message_id (:obj:`int`): Optional. Identifier of an ephemeral message. Its
+            message_id is zero; this identifier may be reused after expiration.
+        rich_message (:class:`telegram.RichMessage`): Optional. Rich content containing typed
+            blocks and entities.
+        community_chat_added (:class:`telegram.CommunityChatAdded`): Optional. Service message: a
+            chat or bot was added to a community.
+        community_chat_joined (:class:`telegram.CommunityChatJoined`): Optional. Service message:
+            the chat joined a community.
+        community_chat_removed (:class:`telegram.CommunityChatRemoved`): Optional. Service
+            message: a chat or bot was removed from a community.
         message_id (:obj:`int`): Unique message identifier inside this chat. In specific instances
             (e.g., message containing a video sent to a big chat), the server might automatically
             schedule a message instead of sending it immediately. In such cases, this field will be
@@ -780,7 +805,8 @@ class Message(MaybeInaccessibleMessage):
             0-:tg-const:`telegram.constants.MessageLimit.MAX_TEXT_LENGTH` characters.
         entities (tuple[:class:`telegram.MessageEntity`]): Optional. For text messages, special
             entities like usernames, URLs, bot commands, etc. that appear in the text. See
-            :attr:`parse_entity` and :attr:`parse_entities` methods for how to use properly.
+            :meth:`telegram.Message.parse_entity` and :meth:`telegram.Message.parse_entities`
+            methods for how to use properly.
             This list is empty if the message does not contain entities.
 
             .. versionchanged:: 20.0
@@ -1201,6 +1227,18 @@ class Message(MaybeInaccessibleMessage):
          instead.
     """
 
+    __REMOVED_API_FIELDS__: ClassVar[frozenset[str]] = frozenset(
+        {
+            "user_shared",
+            "forward_from",
+            "forward_from_chat",
+            "forward_from_message_id",
+            "forward_signature",
+            "forward_sender_name",
+            "forward_date",
+        }
+    )
+
     # fmt: on
     __slots__ = (
         "_effective_attachment",
@@ -1219,6 +1257,9 @@ class Message(MaybeInaccessibleMessage):
         "checklist",
         "checklist_tasks_added",
         "checklist_tasks_done",
+        "community_chat_added",
+        "community_chat_joined",
+        "community_chat_removed",
         "connected_website",
         "contact",
         "delete_chat_photo",
@@ -1229,6 +1270,7 @@ class Message(MaybeInaccessibleMessage):
         "edit_date",
         "effect_id",
         "entities",
+        "ephemeral_message_id",
         "external_reply",
         "forum_topic_closed",
         "forum_topic_created",
@@ -1280,12 +1322,14 @@ class Message(MaybeInaccessibleMessage):
         "poll_option_deleted",
         "proximity_alert_triggered",
         "quote",
+        "receiver_user",
         "refunded_payment",
         "reply_markup",
         "reply_to_checklist_task_id",
         "reply_to_message",
         "reply_to_poll_option_id",
         "reply_to_story",
+        "rich_message",
         "sender_boost_count",
         "sender_business_bot",
         "sender_chat",
@@ -1434,6 +1478,12 @@ class Message(MaybeInaccessibleMessage):
         guest_query_id: str | None = None,
         live_photo: LivePhoto | None = None,
         *,
+        receiver_user: "User | None" = None,
+        ephemeral_message_id: "int | None" = None,
+        rich_message: "RichMessage | None" = None,
+        community_chat_added: "CommunityChatAdded | None" = None,
+        community_chat_joined: "CommunityChatJoined | None" = None,
+        community_chat_removed: "CommunityChatRemoved | None" = None,
         api_kwargs: JSONDict | None = None,
     ):
         super().__init__(chat=chat, message_id=message_id, date=date, api_kwargs=api_kwargs)
@@ -1575,6 +1625,15 @@ class Message(MaybeInaccessibleMessage):
             self._effective_attachment = DEFAULT_NONE
 
             self._id_attrs = (self.message_id, self.chat)
+        with self._unfrozen():
+            self.receiver_user: User | None = receiver_user
+            self.ephemeral_message_id: int | None = ephemeral_message_id
+            if ephemeral_message_id is not None:
+                self._id_attrs = (self.message_id, self.chat, ephemeral_message_id, receiver_user)
+            self.rich_message: RichMessage | None = rich_message
+            self.community_chat_added: CommunityChatAdded | None = community_chat_added
+            self.community_chat_joined: CommunityChatJoined | None = community_chat_joined
+            self.community_chat_removed: CommunityChatRemoved | None = community_chat_removed
 
     @property
     def chat_id(self) -> int:
@@ -1627,6 +1686,7 @@ class Message(MaybeInaccessibleMessage):
         | Sequence[PhotoSize]
         | PaidMediaInfo
         | Poll
+        | RichMessage
         | Sticker
         | Story
         | SuccessfulPayment
@@ -1652,6 +1712,7 @@ class Message(MaybeInaccessibleMessage):
         * list[:class:`telegram.PhotoSize`]
         * :class:`telegram.PaidMediaInfo`
         * :class:`telegram.Poll`
+        * :class:`telegram.RichMessage`
         * :class:`telegram.Sticker`
         * :class:`telegram.Story`
         * :class:`telegram.SuccessfulPayment`
@@ -1705,7 +1766,9 @@ class Message(MaybeInaccessibleMessage):
         if do_quote is not None:
             if do_quote:
                 return ReplyParameters(
-                    self.message_id, allow_sending_without_reply=allow_sending_without_reply
+                    message_id=self.message_id if self.ephemeral_message_id is None else None,
+                    ephemeral_message_id=self.ephemeral_message_id,
+                    allow_sending_without_reply=allow_sending_without_reply,
                 )
 
         else:
@@ -1717,7 +1780,9 @@ class Message(MaybeInaccessibleMessage):
                 default_quote = None
             if (default_quote is None and self.chat.type != Chat.PRIVATE) or default_quote:
                 return ReplyParameters(
-                    self.message_id, allow_sending_without_reply=allow_sending_without_reply
+                    message_id=self.message_id if self.ephemeral_message_id is None else None,
+                    ephemeral_message_id=self.ephemeral_message_id,
+                    allow_sending_without_reply=allow_sending_without_reply,
                 )
 
         return None
@@ -1878,7 +1943,8 @@ class Message(MaybeInaccessibleMessage):
         return {  # type: ignore[typeddict-item]
             "reply_parameters": ReplyParameters(
                 chat_id=None if target_chat_is_self else self.chat_id,
-                message_id=self.message_id,
+                message_id=self.message_id if self.ephemeral_message_id is None else None,
+                ephemeral_message_id=self.ephemeral_message_id,
                 quote=quote,
                 quote_position=quote_position,
                 quote_entities=quote_entities,
@@ -1951,6 +2017,133 @@ class Message(MaybeInaccessibleMessage):
         """Return the topic id of the direct messages chat, if it is present."""
         return self.direct_messages_topic.topic_id if self.direct_messages_topic else None
 
+    async def reply_rich_message(
+        self,
+        rich_message: "InputRichMessage",
+        disable_notification: ODVInput[bool] = DEFAULT_NONE,
+        reply_markup: "ReplyMarkup | None" = None,
+        protect_content: ODVInput[bool] = DEFAULT_NONE,
+        message_thread_id: ODVInput[int] = DEFAULT_NONE,
+        reply_parameters: "ReplyParameters | None" = None,
+        message_effect_id: str | None = None,
+        allow_paid_broadcast: bool | None = None,
+        suggested_post_parameters: "SuggestedPostParameters | None" = None,
+        *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
+        reply_to_message_id: int | None = None,
+        allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
+        do_quote: bool | (_ReplyKwargs | None) = None,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> "Message":
+        """Shortcut for::
+
+             await bot.send_rich_message(
+                 update.effective_message.chat_id,
+                 message_thread_id=update.effective_message.message_thread_id,
+                 business_connection_id=self.business_connection_id,
+                 direct_messages_topic_id=self.direct_messages_topic.topic_id,
+                 *args,
+                 **kwargs,
+             )
+
+        For the documentation of the arguments, please see :meth:`telegram.Bot.send_rich_message`.
+
+        .. versionchanged:: 21.1
+                |reply_same_thread|
+
+        .. versionchanged:: 22.0
+            |quote_removed|
+
+        Keyword Args:
+            do_quote (:obj:`bool` | :obj:`dict`, optional): |do_quote|
+
+                .. versionadded:: 20.8
+
+        Returns:
+            :class:`telegram.Message`: On success, instance representing the message posted.
+
+        """
+        chat_id, effective_reply_parameters = await self._parse_quote_arguments(
+            do_quote, reply_to_message_id, reply_parameters, allow_sending_without_reply
+        )
+        message_thread_id = self._parse_message_thread_id(chat_id, message_thread_id)
+        return await self.get_bot().send_rich_message(
+            chat_id=chat_id,
+            rich_message=rich_message,
+            disable_notification=disable_notification,
+            reply_parameters=effective_reply_parameters,
+            reply_markup=reply_markup,
+            protect_content=protect_content,
+            message_thread_id=message_thread_id,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+            business_connection_id=self.business_connection_id,
+            message_effect_id=message_effect_id,
+            allow_paid_broadcast=allow_paid_broadcast,
+            direct_messages_topic_id=self._extract_direct_messages_topic_id(),
+            suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
+        )
+
+    async def reply_rich_message_draft(
+        self,
+        draft_id: int,
+        rich_message: "InputRichMessage",
+        message_thread_id: ODVInput[int] = DEFAULT_NONE,
+        can_stop: bool | None = None,
+        keep_on_stop: bool | None = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> bool:
+        """Shortcut for::
+
+             await bot.send_rich_message_draft(
+                 update.effective_message.chat_id,
+                 message_thread_id=update.effective_message.message_thread_id,
+                 *args,
+                 **kwargs,
+             )
+
+        For the arguments, see :meth:`telegram.Bot.send_rich_message_draft`.
+
+        Note:
+            |reply_same_thread|
+
+        .. versionadded:: 22.6
+
+        .. versionchanged:: 22.8
+            Bot API 10.0 makes the ``text`` argument optional.
+
+        Returns:
+            :obj:`bool`: On success, :obj:`True` is returned.
+
+        """
+        message_thread_id = self._parse_message_thread_id(self.chat_id, message_thread_id)
+        return await self.get_bot().send_rich_message_draft(
+            chat_id=self.chat_id,
+            draft_id=draft_id,
+            rich_message=rich_message,
+            can_stop=can_stop,
+            keep_on_stop=keep_on_stop,
+            message_thread_id=message_thread_id,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
+
     async def reply_text(
         self,
         text: str,
@@ -1966,6 +2159,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         disable_web_page_preview: bool | None = None,
@@ -2030,6 +2224,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_text_draft(
@@ -2039,6 +2234,8 @@ class Message(MaybeInaccessibleMessage):
         parse_mode: ODVInput[str] = DEFAULT_NONE,
         entities: Sequence["MessageEntity"] | None = None,
         message_thread_id: ODVInput[int] = DEFAULT_NONE,
+        can_stop: bool | None = None,
+        keep_on_stop: bool | None = None,
         *,
         read_timeout: ODVInput[float] = DEFAULT_NONE,
         write_timeout: ODVInput[float] = DEFAULT_NONE,
@@ -2076,6 +2273,8 @@ class Message(MaybeInaccessibleMessage):
             text=text,
             parse_mode=parse_mode,
             entities=entities,
+            can_stop=can_stop,
+            keep_on_stop=keep_on_stop,
             message_thread_id=message_thread_id,
             read_timeout=read_timeout,
             write_timeout=write_timeout,
@@ -2098,6 +2297,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         disable_web_page_preview: bool | None = None,
@@ -2168,6 +2368,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_markdown_v2(
@@ -2184,6 +2385,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         disable_web_page_preview: bool | None = None,
@@ -2250,6 +2452,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_html(
@@ -2266,6 +2469,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         disable_web_page_preview: bool | None = None,
@@ -2332,6 +2536,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_media_group(
@@ -2430,6 +2635,7 @@ class Message(MaybeInaccessibleMessage):
         show_caption_above_media: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -2496,6 +2702,7 @@ class Message(MaybeInaccessibleMessage):
             show_caption_above_media=show_caption_above_media,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_live_photo(
@@ -2516,6 +2723,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -2577,6 +2785,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_audio(
@@ -2598,6 +2807,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -2666,6 +2876,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_document(
@@ -2685,6 +2896,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -2751,6 +2963,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_animation(
@@ -2774,6 +2987,7 @@ class Message(MaybeInaccessibleMessage):
         show_caption_above_media: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -2844,6 +3058,7 @@ class Message(MaybeInaccessibleMessage):
             show_caption_above_media=show_caption_above_media,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_sticker(
@@ -2859,6 +3074,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         do_quote: bool | (_ReplyKwargs | None) = None,
@@ -2919,6 +3135,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_video(
@@ -2945,6 +3162,7 @@ class Message(MaybeInaccessibleMessage):
         start_timestamp: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -3018,6 +3236,7 @@ class Message(MaybeInaccessibleMessage):
             show_caption_above_media=show_caption_above_media,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_video_note(
@@ -3035,6 +3254,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -3099,6 +3319,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_voice(
@@ -3117,6 +3338,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         filename: str | None = None,
@@ -3182,6 +3404,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_location(
@@ -3201,6 +3424,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         location: "Location | None" = None,
@@ -3267,6 +3491,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_venue(
@@ -3288,6 +3513,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         venue: "Venue | None" = None,
@@ -3356,6 +3582,7 @@ class Message(MaybeInaccessibleMessage):
             allow_paid_broadcast=allow_paid_broadcast,
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_contact(
@@ -3373,6 +3600,7 @@ class Message(MaybeInaccessibleMessage):
         allow_paid_broadcast: bool | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         reply_to_message_id: int | None = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         contact: "Contact | None" = None,
@@ -3437,6 +3665,7 @@ class Message(MaybeInaccessibleMessage):
             direct_messages_topic_id=self._extract_direct_messages_topic_id(),
             allow_paid_broadcast=allow_paid_broadcast,
             suggested_post_parameters=suggested_post_parameters,
+            ephemeral_message_parameters=ephemeral_message_parameters,
         )
 
     async def reply_poll(
@@ -4214,12 +4443,13 @@ class Message(MaybeInaccessibleMessage):
 
     async def edit_text(
         self,
-        text: str,
+        text: str | None = None,
         parse_mode: ODVInput[str] = DEFAULT_NONE,
         reply_markup: "InlineKeyboardMarkup | None" = None,
         entities: Sequence["MessageEntity"] | None = None,
         link_preview_options: ODVInput["LinkPreviewOptions"] = DEFAULT_NONE,
         *,
+        rich_message: "InputRichMessage | None" = None,
         disable_web_page_preview: bool | None = None,
         read_timeout: ODVInput[float] = DEFAULT_NONE,
         write_timeout: ODVInput[float] = DEFAULT_NONE,
@@ -4250,7 +4480,31 @@ class Message(MaybeInaccessibleMessage):
             :class:`telegram.Message`: On success, if edited message is sent by the bot, the
             edited Message is returned, otherwise ``True`` is returned.
 
+
+        Ephemeral messages use :meth:`telegram.Bot.edit_ephemeral_message_text`
+        and return :obj:`True`.
         """
+        if self.ephemeral_message_id is not None:
+            if self.receiver_user is None:
+                raise ValueError("The ephemeral message has no receiver_user.")
+            return await self.get_bot().edit_ephemeral_message_text(
+                receiver_user_id=self.receiver_user.id,
+                ephemeral_message_id=self.ephemeral_message_id,
+                chat_id=self.chat_id,
+                text=text,
+                parse_mode=parse_mode,
+                link_preview_options=parse_lpo_and_dwpp(
+                    disable_web_page_preview, link_preview_options
+                ),
+                reply_markup=reply_markup,
+                read_timeout=read_timeout,
+                write_timeout=write_timeout,
+                connect_timeout=connect_timeout,
+                pool_timeout=pool_timeout,
+                api_kwargs=api_kwargs,
+                entities=entities,
+                rich_message=rich_message,
+            )
         return await self.get_bot().edit_message_text(
             chat_id=self.chat_id,
             message_id=self.message_id,
@@ -4267,6 +4521,7 @@ class Message(MaybeInaccessibleMessage):
             entities=entities,
             inline_message_id=None,
             business_connection_id=self.business_connection_id,
+            rich_message=rich_message,
         )
 
     async def edit_caption(
@@ -4307,7 +4562,28 @@ class Message(MaybeInaccessibleMessage):
             :class:`telegram.Message`: On success, if edited message is sent by the bot, the
             edited Message is returned, otherwise ``True`` is returned.
 
+
+        Ephemeral messages use :meth:`telegram.Bot.edit_ephemeral_message_caption`
+        and return :obj:`True`.
         """
+        if self.ephemeral_message_id is not None:
+            if self.receiver_user is None:
+                raise ValueError("The ephemeral message has no receiver_user.")
+            return await self.get_bot().edit_ephemeral_message_caption(
+                receiver_user_id=self.receiver_user.id,
+                ephemeral_message_id=self.ephemeral_message_id,
+                chat_id=self.chat_id,
+                caption=caption,
+                reply_markup=reply_markup,
+                read_timeout=read_timeout,
+                write_timeout=write_timeout,
+                connect_timeout=connect_timeout,
+                pool_timeout=pool_timeout,
+                parse_mode=parse_mode,
+                api_kwargs=api_kwargs,
+                caption_entities=caption_entities,
+                show_caption_above_media=show_caption_above_media,
+            )
         return await self.get_bot().edit_message_caption(
             chat_id=self.chat_id,
             message_id=self.message_id,
@@ -4407,7 +4683,25 @@ class Message(MaybeInaccessibleMessage):
             :class:`telegram.Message`: On success, if edited message is not an inline message, the
             edited Message is returned, otherwise ``True`` is returned.
 
+
+        Ephemeral messages use :meth:`telegram.Bot.edit_ephemeral_message_media`
+        and return :obj:`True`.
         """
+        if self.ephemeral_message_id is not None:
+            if self.receiver_user is None:
+                raise ValueError("The ephemeral message has no receiver_user.")
+            return await self.get_bot().edit_ephemeral_message_media(
+                receiver_user_id=self.receiver_user.id,
+                ephemeral_message_id=self.ephemeral_message_id,
+                media=media,
+                chat_id=self.chat_id,
+                reply_markup=reply_markup,
+                read_timeout=read_timeout,
+                write_timeout=write_timeout,
+                connect_timeout=connect_timeout,
+                pool_timeout=pool_timeout,
+                api_kwargs=api_kwargs,
+            )
         return await self.get_bot().edit_message_media(
             media=media,
             chat_id=self.chat_id,
@@ -4455,7 +4749,24 @@ class Message(MaybeInaccessibleMessage):
         Returns:
             :class:`telegram.Message`: On success, if edited message is sent by the bot, the
             edited Message is returned, otherwise ``True`` is returned.
+
+        Ephemeral messages use :meth:`telegram.Bot.edit_ephemeral_message_reply_markup`
+        and return :obj:`True`.
         """
+        if self.ephemeral_message_id is not None:
+            if self.receiver_user is None:
+                raise ValueError("The ephemeral message has no receiver_user.")
+            return await self.get_bot().edit_ephemeral_message_reply_markup(
+                receiver_user_id=self.receiver_user.id,
+                ephemeral_message_id=self.ephemeral_message_id,
+                chat_id=self.chat_id,
+                reply_markup=reply_markup,
+                read_timeout=read_timeout,
+                write_timeout=write_timeout,
+                connect_timeout=connect_timeout,
+                pool_timeout=pool_timeout,
+                api_kwargs=api_kwargs,
+            )
         return await self.get_bot().edit_message_reply_markup(
             chat_id=self.chat_id,
             message_id=self.message_id,
@@ -4696,7 +5007,23 @@ class Message(MaybeInaccessibleMessage):
         Returns:
             :obj:`bool`: On success, :obj:`True` is returned.
 
+
+        Ephemeral messages use :meth:`telegram.Bot.delete_ephemeral_message`
+        and return :obj:`True`.
         """
+        if self.ephemeral_message_id is not None:
+            if self.receiver_user is None:
+                raise ValueError("The ephemeral message has no receiver_user.")
+            return await self.get_bot().delete_ephemeral_message(
+                receiver_user_id=self.receiver_user.id,
+                ephemeral_message_id=self.ephemeral_message_id,
+                chat_id=self.chat_id,
+                read_timeout=read_timeout,
+                write_timeout=write_timeout,
+                connect_timeout=connect_timeout,
+                pool_timeout=pool_timeout,
+                api_kwargs=api_kwargs,
+            )
         if self.business_connection_id:
             return await self.get_bot().delete_business_messages(
                 business_connection_id=self.business_connection_id,
@@ -5291,7 +5618,7 @@ class Message(MaybeInaccessibleMessage):
         Note:
             This method should always be used instead of the :attr:`entities` attribute, since it
             calculates the correct substring from the message text based on UTF-16 codepoints.
-            See :attr:`parse_entity` for more info.
+            See :meth:`telegram.Message.parse_entity` for more info.
 
         Args:
             types (list[:obj:`str`], optional): List of :class:`telegram.MessageEntity` types as
@@ -5318,7 +5645,7 @@ class Message(MaybeInaccessibleMessage):
         Note:
             This method should always be used instead of the :attr:`caption_entities` attribute,
             since it calculates the correct substring from the message text based on UTF-16
-            codepoints. See :attr:`parse_entity` for more info.
+            codepoints. See :meth:`telegram.Message.parse_entity` for more info.
 
         Args:
             types (list[:obj:`str`], optional): List of :class:`telegram.MessageEntity` types as

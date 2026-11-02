@@ -1,0 +1,3 @@
+# Keep this downstream build when installing or upgrading dependencies:
+# python -m pip install -c constraints-local.txt <requirements>
+python-telegram-bot==22.8+botapi10.3.1

@@ -21,7 +21,7 @@ and InputPollOptionMedia Objects."""
 
 import datetime as dtm
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Final, TypeAlias
+from typing import TYPE_CHECKING, ClassVar, Final, TypeAlias
 
 from telegram import constants
 from telegram._files.animation import Animation
@@ -116,6 +116,19 @@ class InputMedia(_BaseInputMedia):
                 * |alwaystuple|
 
     """
+
+    __DE_JSON_DISPATCH__: ClassVar[tuple[str, dict[str, str]] | None] = (
+        "type",
+        {
+            "animation": "InputMediaAnimation",
+            "audio": "InputMediaAudio",
+            "document": "InputMediaDocument",
+            "photo": "InputMediaPhoto",
+            "video": "InputMediaVideo",
+            "live_photo": "InputMediaLivePhoto",
+            "voice_note": "InputMediaVoiceNote",
+        },
+    )
 
     __slots__ = ("caption", "caption_entities", "media", "parse_mode")
 
@@ -1352,6 +1365,70 @@ class InputMediaLivePhoto(InputMedia):
             self.has_spoiler: bool | None = has_spoiler
 
 
+class InputMediaLink(_BaseInputMedia):
+    """An HTTP link used as media in a poll option."""
+
+    __slots__ = ("url",)
+
+    def __init__(self, url: str, *, api_kwargs: JSONDict | None = None):
+        super().__init__(media_type=BaseInputMediaType.LINK, api_kwargs=api_kwargs)
+        self.url: str = url
+        self._id_attrs = (self.type, self.url)
+        self._freeze()
+
+
+class InputMediaVoiceNote(InputMedia):
+    """A voice message embedded in a rich message.
+
+    Args:
+        media: File identifier, URL, bytes, path, file object or InputFile.
+        caption: Optional caption.
+        parse_mode: Optional caption parse mode.
+        caption_entities: Optional caption entities.
+        duration: Optional duration in seconds or as a timedelta.
+        filename: Optional filename for uploads.
+
+    Attributes:
+        type (:obj:`str`): Always ``voice_note``.
+        media (:obj:`str` | :class:`telegram.InputFile`): File to send.
+        caption (:obj:`str`): Optional. Caption of the voice message.
+        parse_mode (:obj:`str`): Optional. Caption parsing mode.
+        caption_entities (tuple[:class:`telegram.MessageEntity`]): Caption entities.
+    """
+
+    __slots__ = ("_duration",)
+
+    def __init__(
+        self,
+        media: "FileInput",
+        caption: str | None = None,
+        parse_mode: ODVInput[str] = DEFAULT_NONE,
+        caption_entities: Sequence[MessageEntity] | None = None,
+        duration: TimePeriod | None = None,
+        *,
+        filename: str | None = None,
+        api_kwargs: JSONDict | None = None,
+    ):
+        super().__init__(
+            media_type=BaseInputMediaType.VOICE_NOTE,
+            media=parse_file_input(media, attach=True, filename=filename, local_mode=True),
+            caption=caption,
+            parse_mode=parse_mode,
+            caption_entities=caption_entities,
+            api_kwargs=api_kwargs,
+        )
+        self._duration = to_timedelta(duration)
+        self._freeze()
+
+    @property
+    def duration(self) -> int | dtm.timedelta | None:
+        """:obj:`int` | :class:`datetime.timedelta`: Optional. Voice duration.
+
+        The return type respects ``PTB_TIMEDELTA``.
+        """
+        return get_timedelta_value(self._duration, attribute="duration")
+
+
 InputPollMedia: TypeAlias = (
     InputMediaAnimation
     | InputMediaAudio
@@ -1368,7 +1445,8 @@ versionadded:: 22.8
 """
 
 InputPollOptionMedia: TypeAlias = (
-    InputMediaAnimation
+    InputMediaLink
+    | InputMediaAnimation
     | InputMediaLivePhoto
     | InputMediaLocation
     | InputMediaPhoto

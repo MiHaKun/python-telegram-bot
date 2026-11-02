@@ -89,6 +89,16 @@ Use as follows:
     $ pytest -m dev
 
 
+Bot API schema fixture
+======================
+
+``data/bot_api_10_3_schema.json`` is the fixed schema snapshot used by
+``test_botapi103.py`` to generate independent response payloads. It was extracted from
+the `official Bot API tables <https://core.telegram.org/bots/api>`_ on 2026-10-28
+for Bot API 10.3. Keep this fixture in version control and update it deliberately when
+changing the tested API contract; these tests do not fetch the current schema at runtime.
+
+
 Debugging tests
 ===============
 

@@ -24,11 +24,13 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import final
 
+from telegram._botapi103 import InputRichMessage, InputRichMessageContent
 from telegram._files.inputfile import InputFile
 from telegram._files.inputmedia import InputMedia, InputPaidMedia
 from telegram._files.inputprofilephoto import InputProfilePhoto, InputProfilePhotoStatic
 from telegram._files.inputsticker import InputSticker
 from telegram._files.inputstorycontent import InputStoryContent
+from telegram._inline.inlinequeryresult import InlineQueryResult
 from telegram._telegramobject import TelegramObject
 from telegram._utils.datetime import to_timestamp
 from telegram._utils.enum import StringEnum
@@ -94,6 +96,32 @@ class RequestParameter:
         }
 
     @staticmethod
+    def _rich_value(value: object) -> tuple[object, list[InputFile]]:
+        """Serialize nested rich media through the normal multipart request pipeline."""
+        if isinstance(value, InputFile):
+            if not value.attach_uri:
+                raise ValueError("Nested rich media requires InputFile(..., attach=True).")
+            return value.attach_uri, [value]
+        if isinstance(value, TelegramObject):
+            value = value.to_dict()
+        files: list[InputFile] = []
+        if isinstance(value, dict):
+            result = {}
+            for key, item in value.items():
+                converted, attached = RequestParameter._rich_value(item)
+                result[key] = converted
+                files.extend(attached)
+            return result, files
+        if isinstance(value, (tuple, list)):
+            items = []
+            for item in value:
+                converted, attached = RequestParameter._rich_value(item)
+                items.append(converted)
+                files.extend(attached)
+            return items, files
+        return RequestParameter._value_and_input_files_from_input(value)
+
+    @staticmethod
     def _value_and_input_files_from_input(  # pylint: disable=too-many-return-statements
         value: object,
     ) -> tuple[object, list[InputFile]]:
@@ -116,6 +144,16 @@ class RequestParameter:
         * if a user passes a custom enum, it's unlikely that we can actually properly handle it
           even with some special casing.
         """
+        if isinstance(value, (InputRichMessage, InputRichMessageContent, InlineQueryResult)):
+            data, files = RequestParameter._rich_value(value)
+            if files and isinstance(value, (InputRichMessageContent, InlineQueryResult)):
+                raise ValueError("New file uploads are not supported for inline rich content.")
+            attachments: dict[str | None, InputFile] = {}
+            for file in files:
+                if file.attach_name in attachments and attachments[file.attach_name] is not file:
+                    raise ValueError("Different rich media files use the same attachment name.")
+                attachments[file.attach_name] = file
+            return data, list(attachments.values())
         if isinstance(value, dtm.datetime):
             return to_timestamp(value), []
         if isinstance(value, dtm.timedelta):

@@ -198,6 +198,8 @@ class TestConstantsWithoutRequest:
             "link_preview_options",
             "media_group_id",
             "message_id",
+            "ephemeral_message_id",
+            "receiver_user",
             "message_thread_id",
             "migrate_from_chat_id",
             "reply_markup",

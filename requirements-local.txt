@@ -1,0 +1,5 @@
+# Run from the repository root after building or copying the wheel into .local/dist.
+# This pins PTB only; other dependencies retain their package-declared constraints.
+-c constraints-local.txt
+--find-links .local/dist
+python-telegram-bot==22.8+botapi10.3.1

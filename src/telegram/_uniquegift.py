@@ -21,7 +21,7 @@
 
 import datetime as dtm
 from collections.abc import Sequence
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from telegram import constants
 from telegram._chat import Chat
@@ -30,6 +30,9 @@ from telegram._telegramobject import TelegramObject
 from telegram._utils import enum
 from telegram._utils.argumentparsing import parse_sequence_arg
 from telegram._utils.types import JSONDict
+
+if TYPE_CHECKING:
+    from telegram import MessageEntity
 
 
 class UniqueGiftColors(TelegramObject):
@@ -495,6 +498,14 @@ class UniqueGiftInfo(TelegramObject):
 
             .. versionadded:: 22.3
 
+        text (:obj:`str`, optional): Optional . Text of the message that was added to the gift
+        entities (Sequence[:class:`telegram.MessageEntity`], optional): Optional . Special
+            entities that appear in
+            the text
+        is_private (:obj:`bool`, optional): Optional . True , if the sender and gift text are
+            shown only
+            to the gift receiver; otherwise, everyone will be able to see them
+
     Attributes:
         gift (:class:`UniqueGift`): Information about the gift.
         origin (:obj:`str`): Origin of the gift. Currently, either :attr:`UPGRADE` for gifts
@@ -525,6 +536,12 @@ class UniqueGiftInfo(TelegramObject):
             |datetime_localization|
 
             .. versionadded:: 22.3
+        text (:obj:`str`): Optional.
+            See the corresponding constructor argument.
+        entities (tuple[:class:`telegram.MessageEntity`]): Optional.
+            See the corresponding constructor argument.
+        is_private (:obj:`bool`): Optional.
+            See the corresponding constructor argument.
     """
 
     GIFTED_UPGRADE: Final[str] = constants.UniqueGiftInfoOrigin.GIFTED_UPGRADE
@@ -548,12 +565,15 @@ class UniqueGiftInfo(TelegramObject):
     """:const:`telegram.constants.UniqueGiftInfoOrigin.UPGRADE`"""
 
     __slots__ = (
+        "entities",
         "gift",
+        "is_private",
         "last_resale_amount",
         "last_resale_currency",
         "next_transfer_date",
         "origin",
         "owned_gift_id",
+        "text",
         "transfer_star_count",
     )
 
@@ -567,6 +587,9 @@ class UniqueGiftInfo(TelegramObject):
         last_resale_currency: str | None = None,
         last_resale_amount: int | None = None,
         *,
+        text: "str | None" = None,
+        entities: "Sequence[MessageEntity] | None" = None,
+        is_private: "bool | None" = None,
         api_kwargs: JSONDict | None = None,
     ):
         super().__init__(api_kwargs=api_kwargs)
@@ -583,3 +606,9 @@ class UniqueGiftInfo(TelegramObject):
         self._id_attrs = (self.gift, self.origin)
 
         self._freeze()
+        with self._unfrozen():
+            self.text: str | None = text
+            self.entities: Sequence[MessageEntity] | None = (
+                tuple(entities) if entities is not None else ()
+            )
+            self.is_private: bool | None = is_private

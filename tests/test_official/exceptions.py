@@ -150,6 +150,7 @@ PTB_EXTRA_PARAMS = {
     "answer_inline_query": {"current_offset"},
     "send_media_group": {"caption", "parse_mode", "caption_entities"},
     "send_(animation|audio|document|photo|video(_note)?|voice|live_photo)": {"filename"},
+    "RichText|(?:Input)?RichBlock": {"type"},
     "InlineQueryResult": {"id", "type"},  # attributes common to all subclasses
     "ChatMember": {"user", "status"},  # attributes common to all subclasses
     "BotCommandScope": {"type"},  # attributes common to all subclasses
@@ -159,7 +160,7 @@ PTB_EXTRA_PARAMS = {
     "PassportElementError": {"source", "type", "message"},
     "InputPoll(Option)?Media": {"media_type"},
     "InputMedia": {"caption", "caption_entities", "media", "media_type", "parse_mode"},
-    "InputMedia(Animation|Audio|Document|Photo|Sticker|Video|VideoNote|Voice)": {
+    "InputMedia(Animation|Audio|Document|Photo|Sticker|Video|VideoNote|Voice|VoiceNote)": {
         "filename",
         # tags: deprecated NEXT.VERSION
         "filename_depr",
@@ -192,6 +193,8 @@ def ptb_extra_params(object_name: str) -> set[str]:
 # Arguments *removed* from the official API
 # Mostly due to the value being fixed anyway
 PTB_IGNORED_PARAMS = {
+    r"RichText\w+": {"type"},
+    r"(?:Input)?RichBlock(?!ListItem$|Caption$|TableCell$)\w+": {"type"},
     r"InlineQueryResult\w+": {"type"},
     r"ChatMember\w+": {"status"},
     r"PassportElementError\w+": {"source"},
@@ -237,7 +240,11 @@ def ignored_param_requirements(object_name: str) -> set[str]:
 
 
 # Arguments that are optional arguments for now for backwards compatibility
-BACKWARDS_COMPAT_KWARGS: dict[str, set[str]] = {}
+BACKWARDS_COMPAT_KWARGS: dict[str, set[str]] = {
+    # New required API fields remain optional for callers constructing pre-10.1 objects.
+    "ChatAdministratorRights": {"can_send_welcome_messages"},
+    "ChatMemberAdministrator": {"can_send_welcome_messages"},
+}
 
 
 def backwards_compat_kwargs(object_name: str) -> set[str]:

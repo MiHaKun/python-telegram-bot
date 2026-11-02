@@ -40,6 +40,9 @@ class BotCommand(TelegramObject):
             :tg-const:`telegram.BotCommand.MIN_DESCRIPTION`-
             :tg-const:`telegram.BotCommand.MAX_DESCRIPTION` characters.
 
+        is_ephemeral (:obj:`bool`, optional): Send a command visible only to its sender
+            and the bot.
+
     Attributes:
         command (:obj:`str`): Text of the command; :tg-const:`telegram.BotCommand.MIN_COMMAND`-
             :tg-const:`telegram.BotCommand.MAX_COMMAND` characters. Can contain only lowercase
@@ -48,14 +51,25 @@ class BotCommand(TelegramObject):
             :tg-const:`telegram.BotCommand.MIN_DESCRIPTION`-
             :tg-const:`telegram.BotCommand.MAX_DESCRIPTION` characters.
 
+        is_ephemeral (:obj:`bool`, optional): Send a command visible only to its sender
+            and the bot.
+
     """
 
-    __slots__ = ("command", "description")
+    __slots__ = ("command", "description", "is_ephemeral")
 
-    def __init__(self, command: str, description: str, *, api_kwargs: JSONDict | None = None):
+    def __init__(
+        self,
+        command: str,
+        description: str,
+        is_ephemeral: bool | None = None,
+        *,
+        api_kwargs: JSONDict | None = None,
+    ):
         super().__init__(api_kwargs=api_kwargs)
         self.command: str = command
         self.description: str = description
+        self.is_ephemeral: bool | None = is_ephemeral
 
         self._id_attrs = (self.command, self.description)
 

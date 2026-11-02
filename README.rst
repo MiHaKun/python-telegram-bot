@@ -11,7 +11,7 @@
    :target: https://pypi.org/project/python-telegram-bot/
    :alt: Supported Python versions
 
-.. image:: https://img.shields.io/badge/Bot%20API-10.0-blue?logo=telegram
+.. image:: https://img.shields.io/badge/Bot%20API-10.3-blue?logo=telegram
    :target: https://core.telegram.org/bots/api-changelog
    :alt: Supported Bot API version
 
@@ -77,7 +77,13 @@ After installing_ the library, be sure to check out the section on `working with
 Telegram API support
 ~~~~~~~~~~~~~~~~~~~~
 
-All types and methods of the Telegram Bot API **10.0** are natively supported by this library.
+All types and methods of the Telegram Bot API **10.3** are natively supported by this working tree.
+This includes local 10.1–10.3 additions on the PTB 22.8 baseline, not an upstream release.
+The distribution version is ``22.8+botapi10.3.1``. Install from ``requirements-local.txt``
+and use ``-c constraints-local.txt`` for later dependency updates to retain this build.
+When migrating from the earlier monkey patch, remove its ``apply_patch()`` call and import
+the native classes directly from ``telegram``. Offline coverage is in ``tests/test_botapi103.py``;
+passing those tests does not establish client rendering or account-specific permissions.
 In addition, Bot API functionality not yet natively included can still be used as described `in our wiki <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Bot-API-Forward-Compatibility>`_.
 
 Notable Features
@@ -93,27 +99,31 @@ Notable Features
 Installing
 ----------
 
-You can install or upgrade ``python-telegram-bot`` via
+Install this local build from the repository root after placing its wheel in ``.local/dist``:
 
 .. code:: shell
 
-    $ pip install python-telegram-bot --upgrade
+    $ python -m pip install -r requirements-local.txt
 
-To install a pre-release, use the ``--pre`` `flag <https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-pre>`_ in addition.
-
-You can also install ``python-telegram-bot`` from source, though this is usually not necessary.
+For an editable source installation with all optional dependencies:
 
 .. code:: shell
 
-    $ git clone https://github.com/python-telegram-bot/python-telegram-bot
-    $ cd python-telegram-bot
-    $ pip install build
-    $ python -m build
+    $ python -m pip install -e ".[all]" -c constraints-local.txt
+
+Keep using ``-c constraints-local.txt`` when installing or updating dependencies.
+The local version suffix identifies this build; an unconstrained upgrade can still replace it
+with a newer official release. Increment the final local revision for same-baseline fixes
+(for example, ``22.8+botapi10.3.2``), and update both constraint and requirement files together.
+Change the upstream baseline only after reviewing and testing the merged changes.
 
 You can also use your favored package manager (such as ``uv``, ``hatch``, ``poetry``, etc.) instead of ``pip``.
 
 Verifying Releases
 ~~~~~~~~~~~~~~~~~~
+
+The following verification methods apply to official upstream releases. This local build is not
+an upstream-signed release.
 
 To enable you to verify that a release file that you downloaded was indeed provided by the ``python-telegram-bot`` team, we have taken the following measures.
 
@@ -149,6 +159,8 @@ Optional Dependencies
 #####################
 
 PTB can be installed with optional dependencies:
+
+For this local build, add ``-c constraints-local.txt --find-links .local/dist`` to each command below.
 
 * ``pip install "python-telegram-bot[passport]"`` installs the `cryptography>=39.0.1 <https://cryptography.io/en/stable>`_ library. Use this, if you want to use Telegram Passport related functionality.
 * ``pip install "python-telegram-bot[socks]"`` installs `httpx[socks] <https://www.python-httpx.org/#dependencies>`_. Use this, if you want to work behind a Socks5 server.

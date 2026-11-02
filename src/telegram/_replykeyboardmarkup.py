@@ -85,6 +85,8 @@ class ReplyKeyboardMarkup(TelegramObject):
 
             .. versionadded:: 20.0
 
+        force_reply (:obj:`bool`, optional): Show the reply interface together with the keyboard.
+
     Attributes:
         keyboard (tuple[tuple[:class:`telegram.KeyboardButton`]]): Array of button rows,
             each represented by an Array of :class:`telegram.KeyboardButton` objects.
@@ -119,9 +121,12 @@ class ReplyKeyboardMarkup(TelegramObject):
 
             .. versionadded:: 20.0
 
+        force_reply (:obj:`bool`, optional): Show the reply interface together with the keyboard.
+
     """
 
     __slots__ = (
+        "force_reply",
         "input_field_placeholder",
         "is_persistent",
         "keyboard",
@@ -139,6 +144,7 @@ class ReplyKeyboardMarkup(TelegramObject):
         input_field_placeholder: str | None = None,
         is_persistent: bool | None = None,
         *,
+        force_reply: bool | None = None,
         api_kwargs: JSONDict | None = None,
     ):
         super().__init__(api_kwargs=api_kwargs)
@@ -160,6 +166,7 @@ class ReplyKeyboardMarkup(TelegramObject):
         self.selective: bool | None = selective
         self.input_field_placeholder: str | None = input_field_placeholder
         self.is_persistent: bool | None = is_persistent
+        self.force_reply: bool | None = force_reply
 
         self._id_attrs = (self.keyboard,)
 

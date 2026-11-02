@@ -68,6 +68,11 @@ class ChatJoinRequest(TelegramObject):
         invite_link (:class:`telegram.ChatInviteLink`, optional): Chat invite link that was used
             by the user to send the join request.
 
+        query_id (:obj:`str`, optional): Optional . Identifier of the join request query; for bots
+            assigned to process join requests only. If present, then the bot must call
+            sendChatJoinRequestWebApp or directly call answerChatJoinRequestQuery within 10
+            seconds.
+
     Attributes:
         chat (:class:`telegram.Chat`): Chat to which the request was sent.
         from_user (:class:`telegram.User`): User that sent the join request.
@@ -93,10 +98,11 @@ class ChatJoinRequest(TelegramObject):
                 be present. However, this behavior is undocument and may be subject to change.
                 See `this GitHub thread <https://github.com/tdlib/telegram-bot-api/issues/428>`_
                 for some discussion.
-
+        query_id (:obj:`str`): Optional.
+            See the corresponding constructor argument.
     """
 
-    __slots__ = ("bio", "chat", "date", "from_user", "invite_link", "user_chat_id")
+    __slots__ = ("bio", "chat", "date", "from_user", "invite_link", "query_id", "user_chat_id")
 
     def __init__(
         self,
@@ -107,6 +113,7 @@ class ChatJoinRequest(TelegramObject):
         bio: str | None = None,
         invite_link: ChatInviteLink | None = None,
         *,
+        query_id: "str | None" = None,
         api_kwargs: JSONDict | None = None,
     ):
         super().__init__(api_kwargs=api_kwargs)
@@ -123,6 +130,54 @@ class ChatJoinRequest(TelegramObject):
         self._id_attrs = (self.chat, self.from_user, self.date)
 
         self._freeze()
+        with self._unfrozen():
+            self.query_id: str | None = query_id
+
+    async def answer_query(
+        self,
+        result: str,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> bool:
+        """Answer this request with :meth:`telegram.Bot.answer_chat_join_request_query`."""
+        if self.query_id is None:
+            raise ValueError("This join request does not contain a query_id.")
+        return await self.get_bot().answer_chat_join_request_query(
+            self.query_id,
+            result,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
+
+    async def send_web_app(
+        self,
+        web_app_url: str,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> bool:
+        """Open a Web App with :meth:`telegram.Bot.send_chat_join_request_web_app`."""
+        if self.query_id is None:
+            raise ValueError("This join request does not contain a query_id.")
+        return await self.get_bot().send_chat_join_request_web_app(
+            self.query_id,
+            web_app_url,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
 
     async def approve(
         self,

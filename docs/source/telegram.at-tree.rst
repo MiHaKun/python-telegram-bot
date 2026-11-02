@@ -133,6 +133,8 @@ Available Types
     telegram.loginurl
     telegram.managedbotcreated
     telegram.managedbotupdated
+    telegram.messagegenerationstopped
+    telegram.disabledbutton
     telegram.maybeinaccessiblemessage
     telegram.menubutton
     telegram.menubuttoncommands
@@ -229,3 +231,99 @@ Available Types
     telegram.webhookinfo
     telegram.writeaccessallowed
 
+    telegram.botsubscriptionupdated
+    telegram.community
+    telegram.communitychatadded
+    telegram.communitychatjoined
+    telegram.communitychatremoved
+    telegram.ephemeralmessageparameters
+    telegram.inputrichblock
+    telegram.inputrichblockanchor
+    telegram.inputrichblockanimation
+    telegram.inputrichblockaudio
+    telegram.inputrichblockblockquotation
+    telegram.inputrichblockbuttons
+    telegram.inputrichblockcollage
+    telegram.inputrichblockdetails
+    telegram.inputrichblockdivider
+    telegram.inputrichblockdocument
+    telegram.inputrichblockexpandableblockquotation
+    telegram.inputrichblockfooter
+    telegram.inputrichblocklist
+    telegram.inputrichblocklistitem
+    telegram.inputrichblockmap
+    telegram.inputrichblockmathematicalexpression
+    telegram.inputrichblockparagraph
+    telegram.inputrichblockphoto
+    telegram.inputrichblockpreformatted
+    telegram.inputrichblockpullquotation
+    telegram.inputrichblocksectionheading
+    telegram.inputrichblockslideshow
+    telegram.inputrichblocktable
+    telegram.inputrichblockthinking
+    telegram.inputrichblockvideo
+    telegram.inputrichblockvoicenote
+    telegram.inputrichmessage
+    telegram.inputrichmessagecontent
+    telegram.inputrichmessagemedia
+    telegram.richblock
+    telegram.richblockanchor
+    telegram.richblockanimation
+    telegram.richblockaudio
+    telegram.richblockblockquotation
+    telegram.richblockbuttons
+    telegram.richblockcaption
+    telegram.richblockcollage
+    telegram.richblockdetails
+    telegram.richblockdivider
+    telegram.richblockdocument
+    telegram.richblockexpandableblockquotation
+    telegram.richblockfooter
+    telegram.richblocklist
+    telegram.richblocklistitem
+    telegram.richblockmap
+    telegram.richblockmathematicalexpression
+    telegram.richblockparagraph
+    telegram.richblockphoto
+    telegram.richblockpreformatted
+    telegram.richblockpullquotation
+    telegram.richblocksectionheading
+    telegram.richblockslideshow
+    telegram.richblocktable
+    telegram.richblocktablecell
+    telegram.richblockthinking
+    telegram.richblockvideo
+    telegram.richblockvoicenote
+    telegram.richmessage
+    telegram.richmessagebutton
+    telegram.richtext
+    telegram.richtextanchor
+    telegram.richtextanchorlink
+    telegram.richtextbankcardnumber
+    telegram.richtextbold
+    telegram.richtextbotcommand
+    telegram.richtextbutton
+    telegram.richtextcashtag
+    telegram.richtextcode
+    telegram.richtextcustomemoji
+    telegram.richtextdatetime
+    telegram.richtextemailaddress
+    telegram.richtexthashtag
+    telegram.richtextitalic
+    telegram.richtextmarked
+    telegram.richtextmathematicalexpression
+    telegram.richtextmention
+    telegram.richtextphonenumber
+    telegram.richtextreference
+    telegram.richtextreferencelink
+    telegram.richtextspoiler
+    telegram.richtextstrikethrough
+    telegram.richtextsubscript
+    telegram.richtextsuperscript
+    telegram.richtexttextmention
+    telegram.richtextunderline
+    telegram.richtexturl
+    telegram.inputmedialink
+    telegram.inputmediavoicenote
+    telegram.richtextvalue
+    telegram.link

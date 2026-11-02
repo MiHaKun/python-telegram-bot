@@ -46,6 +46,10 @@ if TYPE_CHECKING:
     from telegram import BusinessIntro, BusinessLocation, BusinessOpeningHours, Message
 
 
+if TYPE_CHECKING:
+    from telegram import Community, User
+
+
 class ChatFullInfo(_ChatBase):
     """
     This object contains full information about a chat.
@@ -62,6 +66,8 @@ class ChatFullInfo(_ChatBase):
 
     .. versionremoved:: 22.3
        Removed argument and attribute ``can_send_gift`` deprecated  by API 9.0.
+
+    .. _active chat usernames: https://telegram.org/blog/topics-in-groups-collectible-usernames#collectible-usernames
 
     Args:
         id (:obj:`int`): Unique identifier for this chat.
@@ -91,9 +97,8 @@ class ChatFullInfo(_ChatBase):
 
             .. versionadded:: 20.0
         photo (:class:`telegram.ChatPhoto`, optional): Chat photo.
-        active_usernames (Sequence[:obj:`str`], optional):  If set, the list of all `active chat
-            usernames <https://telegram.org/blog/topics-in-groups-collectible-usernames\
-            #collectible-usernames>`_; for private chats, supergroups and channels.
+        active_usernames (Sequence[:obj:`str`], optional): If set, the list of all
+            `active chat usernames`_; for private chats, supergroups and channels.
 
             .. versionadded:: 20.0
         birthdate (:class:`telegram.Birthdate`, optional): For private chats,
@@ -250,6 +255,12 @@ class ChatFullInfo(_ChatBase):
             .. versionadded:: 22.7
 
 
+        guard_bot (:class:`telegram.User`, optional): Optional . The bot that processes join
+            request queries in the
+            chat. The field is only available to chat administrators.
+        community (:class:`telegram.Community`, optional): Optional . The Community to which the
+            chat belongs
+
     Attributes:
         id (:obj:`int`): Unique identifier for this chat.
         type (:obj:`str`): Type of chat, can be either :attr:`PRIVATE`, :attr:`GROUP`,
@@ -278,9 +289,8 @@ class ChatFullInfo(_ChatBase):
 
             .. versionadded:: 20.0
         photo (:class:`telegram.ChatPhoto`): Optional. Chat photo.
-        active_usernames (tuple[:obj:`str`]): Optional. If set, the list of all `active chat
-            usernames <https://telegram.org/blog/topics-in-groups-collectible-usernames\
-            #collectible-usernames>`_; for private chats, supergroups and channels.
+        active_usernames (tuple[:obj:`str`]): Optional. If set, the list of all
+            `active chat usernames`_; for private chats, supergroups and channels.
 
             This list is empty if the chat has no active usernames or this chat instance was not
             obtained via :meth:`~telegram.Bot.get_chat`.
@@ -439,6 +449,11 @@ class ChatFullInfo(_ChatBase):
 
             .. versionadded:: 22.7
 
+        guard_bot (:class:`telegram.User`): Optional.
+            See the corresponding constructor argument.
+        community (:class:`telegram.Community`): Optional.
+            See the corresponding constructor argument.
+
     .. _accent colors: https://core.telegram.org/bots/api#accent-colors
     .. _topics: https://telegram.org/blog/topics-in-groups-collectible-usernames#topics-in-groups
     """
@@ -458,11 +473,13 @@ class ChatFullInfo(_ChatBase):
         "business_opening_hours",
         "can_send_paid_media",
         "can_set_sticker_set",
+        "community",
         "custom_emoji_sticker_set_name",
         "description",
         "emoji_status_custom_emoji_id",
         "emoji_status_expiration_date",
         "first_profile_audio",
+        "guard_bot",
         "has_aggressive_anti_spam_enabled",
         "has_hidden_members",
         "has_private_forwards",
@@ -543,6 +560,8 @@ class ChatFullInfo(_ChatBase):
         paid_message_star_count: int | None = None,
         first_profile_audio: Audio | None = None,
         *,
+        guard_bot: "User | None" = None,
+        community: "Community | None" = None,
         api_kwargs: JSONDict | None = None,
     ):
         super().__init__(
@@ -609,6 +628,9 @@ class ChatFullInfo(_ChatBase):
             self.unique_gift_colors: UniqueGiftColors | None = unique_gift_colors
             self.paid_message_star_count: int | None = paid_message_star_count
             self.first_profile_audio: Audio | None = first_profile_audio
+        with self._unfrozen():
+            self.guard_bot: User | None = guard_bot
+            self.community: Community | None = community
 
     @property
     def slow_mode_delay(self) -> int | dtm.timedelta | None:

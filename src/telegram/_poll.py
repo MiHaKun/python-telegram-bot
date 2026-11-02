@@ -51,6 +51,10 @@ if TYPE_CHECKING:
     from telegram._message import MaybeInaccessibleMessage
 
 
+if TYPE_CHECKING:
+    from telegram import Link
+
+
 class PollMedia(TelegramObject):
     """
     At most one of the optional fields can be present in any given object.
@@ -78,6 +82,8 @@ class PollMedia(TelegramObject):
         venue (:class:`telegram.Venue`, optional): Media is a venue, information about the venue
         video (:class:`telegram.Video`, optional): Media is a video, information about the video
 
+        link (:class:`telegram.Link`, optional): The HTTP link attached to the poll option.
+
     Attributes:
         animation (:class:`telegram.Animation`): Optional. Media is an animation, information about
             the animation
@@ -95,12 +101,14 @@ class PollMedia(TelegramObject):
             sticker; currently, for poll options only
         venue (:class:`telegram.Venue`): Optional. Media is a venue, information about the venue
         video (:class:`telegram.Video`): Optional. Media is a video, information about the video
+        link: Optional. See the corresponding constructor argument.
     """
 
     __slots__ = (
         "animation",
         "audio",
         "document",
+        "link",
         "live_photo",
         "location",
         "photo",
@@ -121,6 +129,7 @@ class PollMedia(TelegramObject):
         venue: Venue | None = None,
         video: Video | None = None,
         *,
+        link: "Link | None" = None,
         api_kwargs: JSONDict | None = None,
     ):
         super().__init__(api_kwargs=api_kwargs)
@@ -147,6 +156,8 @@ class PollMedia(TelegramObject):
         )
 
         self._freeze()
+        with self._unfrozen():
+            self.link: Link | None = link
 
 
 class InputPollOption(TelegramObject):
@@ -353,7 +364,7 @@ class PollOption(TelegramObject):
         Note:
             This method should always be used instead of the :attr:`text_entities`
             attribute, since it calculates the correct substring from the message text based on
-            UTF-16 codepoints. See :attr:`parse_entity` for more info.
+            UTF-16 codepoints. See :meth:`telegram.PollOption.parse_entity` for more info.
 
         .. versionadded:: 21.2
 
@@ -552,7 +563,7 @@ class PollOptionAdded(TelegramObject):
         Note:
             This method should always be used instead of the :attr:`option_text_entities`
             attribute, since it calculates the correct substring from the message text based on
-            UTF-16 codepoints. See :attr:`parse_entity` for more info.
+            UTF-16 codepoints. See :meth:`telegram.PollOption.parse_entity` for more info.
 
         Args:
             types (list[:obj:`str`], optional): List of ``MessageEntity`` types as strings. If the
@@ -649,7 +660,7 @@ class PollOptionDeleted(TelegramObject):
         Note:
             This method should always be used instead of the :attr:`option_text_entities`
             attribute, since it calculates the correct substring from the message text based on
-            UTF-16 codepoints. See :attr:`parse_entity` for more info.
+            UTF-16 codepoints. See :meth:`telegram.PollOption.parse_entity` for more info.
 
         Args:
             types (list[:obj:`str`], optional): List of ``MessageEntity`` types as strings. If the

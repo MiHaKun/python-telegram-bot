@@ -53,4 +53,6 @@ class Version(NamedTuple):
 __version_info__: Final[Version] = Version(
     major=22, minor=8, micro=0, releaselevel="final", serial=0
 )
-__version__: Final[str] = str(__version_info__)
+# Preserve the upstream five-field version tuple for compatibility. The PEP 440 local
+# suffix identifies this downstream Bot API adaptation; increment its final revision for fixes.
+__version__: Final[str] = f"{__version_info__}+botapi10.3.1"

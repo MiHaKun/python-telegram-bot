@@ -117,6 +117,10 @@ class ChatAdministratorRights(TelegramObject):
 
             .. versionadded:: 22.7
 
+        can_send_welcome_messages (:obj:`bool`, optional): True , if the administrator can manage
+            chat
+            welcome messages or directly send them in the case of bots
+
     Attributes:
         is_anonymous (:obj:`bool`): :obj:`True`, if the user's presence in the chat is hidden.
         can_manage_chat (:obj:`bool`): :obj:`True`, if the administrator can access the chat event
@@ -174,6 +178,8 @@ class ChatAdministratorRights(TelegramObject):
             value of :attr:`can_pin_messages`.
 
             .. versionadded:: 22.7
+        can_send_welcome_messages (:obj:`bool`): Optional.
+            See the corresponding constructor argument.
     """
 
     __slots__ = (
@@ -193,6 +199,7 @@ class ChatAdministratorRights(TelegramObject):
         "can_post_stories",
         "can_promote_members",
         "can_restrict_members",
+        "can_send_welcome_messages",
         "is_anonymous",
     )
 
@@ -216,6 +223,7 @@ class ChatAdministratorRights(TelegramObject):
         can_manage_direct_messages: bool | None = None,
         can_manage_tags: bool | None = None,
         *,
+        can_send_welcome_messages: "bool | None" = None,
         api_kwargs: JSONDict | None = None,
     ) -> None:
         super().__init__(api_kwargs=api_kwargs)
@@ -257,9 +265,12 @@ class ChatAdministratorRights(TelegramObject):
             self.can_delete_stories,
             self.can_manage_direct_messages,
             self.can_manage_tags,
+            can_send_welcome_messages,
         )
 
         self._freeze()
+        with self._unfrozen():
+            self.can_send_welcome_messages: bool | None = can_send_welcome_messages
 
     @classmethod
     def all_rights(cls) -> Self:
@@ -270,7 +281,8 @@ class ChatAdministratorRights(TelegramObject):
 
         .. versionadded:: 20.0
         """
-        return cls(*(True,) * len(cls.__slots__))
+        kwargs: JSONDict = dict.fromkeys(cls.__slots__, True)
+        return cls(**kwargs)
 
     @classmethod
     def no_rights(cls) -> Self:
@@ -280,4 +292,5 @@ class ChatAdministratorRights(TelegramObject):
 
         .. versionadded:: 20.0
         """
-        return cls(*(False,) * len(cls.__slots__))
+        kwargs: JSONDict = dict.fromkeys(cls.__slots__, False)
+        return cls(**kwargs)

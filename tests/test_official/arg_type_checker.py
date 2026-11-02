@@ -26,7 +26,7 @@ import logging
 import re
 from collections.abc import Sequence
 from types import FunctionType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from telegram._utils.defaultvalue import DefaultValue
 from telegram._utils.types import FileInput, ODVInput
@@ -43,6 +43,9 @@ from tests.test_official.helpers import (
     wrap_with_none,
 )
 from tests.test_official.scraper import TelegramParameter
+
+if TYPE_CHECKING:
+    from telegram import RichTextValue
 
 ARRAY_OF_PATTERN = r"Array of(?: Array of)? ([\w\,\s]*)"
 
@@ -71,6 +74,10 @@ DATETIME_REGEX = re.compile(
 TIMEDELTA_REGEX = re.compile(r"((in|number of) seconds)|(\w+_period$)")
 
 log = logging.debug
+
+
+def _rich_text_types(required: "RichTextValue", optional: "RichTextValue | None") -> None:
+    """Reference annotations for the recursive API union, resolved exactly once."""
 
 
 def check_required_param(
@@ -116,6 +123,14 @@ def check_param_type(
     tg_param_type: str = tg_parameter.param_type
     is_class = inspect.isclass(obj)
     ptb_annotation = cached_type_hints(obj, is_class).get(ptb_param.name)
+
+    if tg_param_type == "RichText":
+        # Repeated _eval_type calls expand a recursive alias to different finite depths.
+        # Compare at the same resolution depth rather than erasing the union to RichText.
+        expected = cached_type_hints(_rich_text_types, False)[
+            "required" if tg_parameter.param_required else "optional"
+        ]
+        return ptb_annotation == expected, expected
 
     # Let's check for a match:
     # In order to evaluate the type annotation, we need to first have a mapping of the types

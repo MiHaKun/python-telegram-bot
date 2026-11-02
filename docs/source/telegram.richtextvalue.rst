@@ -1,0 +1,4 @@
+RichTextValue
+=============
+
+.. autodata:: telegram.RichTextValue

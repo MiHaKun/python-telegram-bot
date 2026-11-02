@@ -22,6 +22,7 @@ from typing import Final
 
 from telegram import constants
 from telegram._copytextbutton import CopyTextButton
+from telegram._disabledbutton import DisabledButton
 from telegram._games.callbackgame import CallbackGame
 from telegram._loginurl import LoginUrl
 from telegram._switchinlinequerychosenchat import SwitchInlineQueryChosenChat
@@ -36,7 +37,8 @@ class InlineKeyboardButton(TelegramObject):
     Objects of this class are comparable in terms of equality. Two objects of this class are
     considered equal, if their :attr:`text`, :attr:`url`, :attr:`login_url`, :attr:`callback_data`,
     :attr:`switch_inline_query`, :attr:`switch_inline_query_current_chat`, :attr:`callback_game`,
-    :attr:`web_app`, :attr:`pay`, :attr:`style` and :attr:`icon_custom_emoji_id` are equal.
+    :attr:`web_app`, :attr:`pay`, :attr:`style`, :attr:`icon_custom_emoji_id` and the presence
+    of :attr:`disabled` are equal.
 
     Note:
         * Exactly one of the fields other than :attr:`text`, :attr:`icon_custom_emoji_id`, and
@@ -176,6 +178,8 @@ class InlineKeyboardButton(TelegramObject):
 
             .. versionadded:: 22.7
 
+        disabled (:class:`telegram.DisabledButton`, optional): Disable this button.
+
     Attributes:
         text (:obj:`str`): Label text on the button.
         url (:obj:`str`): Optional. HTTP or tg:// url to be opened when the button is pressed.
@@ -265,12 +269,14 @@ class InlineKeyboardButton(TelegramObject):
             Premium subscription.
 
             .. versionadded:: 22.7
+        disabled (:class:`telegram.DisabledButton`): Optional. Disable this button.
     """
 
     __slots__ = (
         "callback_data",
         "callback_game",
         "copy_text",
+        "disabled",
         "icon_custom_emoji_id",
         "login_url",
         "pay",
@@ -298,6 +304,7 @@ class InlineKeyboardButton(TelegramObject):
         copy_text: CopyTextButton | None = None,
         style: str | None = None,
         icon_custom_emoji_id: str | None = None,
+        disabled: DisabledButton | None = None,
         *,
         api_kwargs: JSONDict | None = None,
     ):
@@ -318,6 +325,7 @@ class InlineKeyboardButton(TelegramObject):
             switch_inline_query_chosen_chat
         )
         self.copy_text: CopyTextButton | None = copy_text
+        self.disabled: DisabledButton | None = disabled
         self.style: str | None = style
         self.icon_custom_emoji_id: str | None = icon_custom_emoji_id
         self._id_attrs = ()
@@ -338,6 +346,7 @@ class InlineKeyboardButton(TelegramObject):
             self.pay,
             self.style,
             self.icon_custom_emoji_id,
+            self.disabled is not None,
         )
 
     def update_callback_data(self, callback_data: str | object) -> None:

@@ -55,6 +55,9 @@ class InlineKeyboardMarkup(TelegramObject):
             .. versionchanged:: 20.0
                 |sequenceclassargs|
 
+        force_reply (:obj:`bool`, optional): Show the reply interface. This value cannot be
+            changed when editing the keyboard.
+
     Attributes:
         inline_keyboard (tuple[tuple[:class:`telegram.InlineKeyboardButton`]]): Tuple of
             button rows, each represented by a tuple of :class:`~telegram.InlineKeyboardButton`
@@ -63,13 +66,17 @@ class InlineKeyboardMarkup(TelegramObject):
             .. versionchanged:: 20.0
                 |tupleclassattrs|
 
+        force_reply (:obj:`bool`, optional): Show the reply interface. This value cannot be
+            changed when editing the keyboard.
+
     """
 
-    __slots__ = ("inline_keyboard",)
+    __slots__ = ("force_reply", "inline_keyboard")
 
     def __init__(
         self,
         inline_keyboard: Sequence[Sequence[InlineKeyboardButton]],
+        force_reply: bool | None = None,
         *,
         api_kwargs: JSONDict | None = None,
     ):
@@ -83,6 +90,8 @@ class InlineKeyboardMarkup(TelegramObject):
         self.inline_keyboard: tuple[tuple[InlineKeyboardButton, ...], ...] = tuple(
             tuple(row) for row in inline_keyboard
         )
+
+        self.force_reply: bool | None = force_reply
 
         self._id_attrs = (self.inline_keyboard,)
 

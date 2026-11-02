@@ -153,6 +153,13 @@ _SUPPORTED_INSERTIONS = {"token", "TOKEN", "bot_token", "BOT_TOKEN", "bot-token"
 _INSERTION_STRINGS = {f"{{{insertion}}}" for insertion in _SUPPORTED_INSERTIONS}
 
 
+if TYPE_CHECKING:
+    from telegram import (
+        EphemeralMessageParameters,
+        InputRichMessage,
+    )
+
+
 class _TokenDict(dict):
     __slots__ = ("token",)
 
@@ -341,7 +348,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
 
         self._local_mode: bool = local_mode
         self._bot_user: User | None = None
-        self._private_key: bytes | None = None
+        self._private_key: Any | None = None
         self._requests_initialized: bool = False
         self._bot_initialized: bool = False
 
@@ -397,6 +404,490 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             )
 
         self._freeze()
+
+    async def send_rich_message(
+        self,
+        chat_id: "int | str",
+        rich_message: "InputRichMessage",
+        business_connection_id: "str | None" = None,
+        message_thread_id: "int | None" = None,
+        direct_messages_topic_id: "int | None" = None,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
+        disable_notification: "ODVInput[bool]" = DEFAULT_NONE,
+        protect_content: "ODVInput[bool]" = DEFAULT_NONE,
+        allow_paid_broadcast: "bool | None" = None,
+        message_effect_id: "str | None" = None,
+        suggested_post_parameters: "SuggestedPostParameters | None" = None,
+        reply_parameters: "ReplyParameters | None" = None,
+        reply_markup: "ReplyMarkup | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> "Message":
+        """Use this method to send rich messages. If the message contains a block with a media
+        element, then the bot must have the right to send the media to the chat. On
+        success, the sent Message is returned.
+
+        See https://core.telegram.org/bots/api#sendrichmessage for field constraints.
+
+        Args:
+            chat_id: Unique identifier for the target chat or username of the target bot,
+                supergroup or channel in the format @username
+            rich_message: The message to be sent
+            business_connection_id: Unique identifier of the business connection on behalf of which
+                the message will be sent. Bot can send rich messages on behalf of a business
+                account only if the corresponding user can send rich messages.
+            message_thread_id: Unique identifier for the target message thread (topic) of a forum;
+                for forum supergroups and private chats of bots with forum topic mode enabled only
+            direct_messages_topic_id: Identifier of the direct messages topic to which the message
+                will be sent; required if the message is sent to a direct messages chat
+            ephemeral_message_parameters: A JSON-serialized object containing the parameters of the
+                ephemeral message to send
+            disable_notification: Sends the message silently . Users will receive a notification
+                with no sound.
+            protect_content: Protects the contents of the sent message from forwarding and saving
+            allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring
+                broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars
+                will be withdrawn from the bot's balance.
+            message_effect_id: Unique identifier of the message effect to be added to the message;
+                for private chats only
+            suggested_post_parameters: A JSON-serialized object containing the parameters of the
+                suggested post to send; for direct messages chats only. If the message is sent as a
+                reply to another suggested post, then that suggested post is automatically
+                declined.
+            reply_parameters: Description of the message to reply to
+            reply_markup: Additional interface options. A JSON-serialized object for an inline
+                keyboard , custom reply keyboard , instructions to remove a reply keyboard or to
+                force a reply from the user.
+
+        Returns:
+            Message: The API result.
+        """
+        data: JSONDict = {
+            "chat_id": chat_id,
+            "rich_message": rich_message,
+            "ephemeral_message_parameters": ephemeral_message_parameters,
+        }
+        return await self._send_message(
+            "sendRichMessage",
+            data,
+            business_connection_id=business_connection_id,
+            message_thread_id=message_thread_id,
+            direct_messages_topic_id=direct_messages_topic_id,
+            disable_notification=disable_notification,
+            protect_content=protect_content,
+            allow_paid_broadcast=allow_paid_broadcast,
+            message_effect_id=message_effect_id,
+            suggested_post_parameters=suggested_post_parameters,
+            reply_parameters=reply_parameters,
+            reply_markup=reply_markup,
+            parse_mode=None,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
+
+    async def send_rich_message_draft(
+        self,
+        chat_id: "int",
+        draft_id: "int",
+        rich_message: "InputRichMessage",
+        message_thread_id: "int | None" = None,
+        can_stop: "bool | None" = None,
+        keep_on_stop: "bool | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> bool:
+        """Use this method to stream a partial rich message to a user while the message is being
+        generated. Note that the streamed draft is ephemeral and acts as a temporary
+        30-second preview - once the output is finalized, you must call sendRichMessage
+        with the complete message to persist it in the user's chat. Returns True on
+        success.
+
+        See https://core.telegram.org/bots/api#sendrichmessagedraft for field constraints.
+
+        Args:
+            chat_id: Unique identifier for the target private chat
+            draft_id: Unique identifier of the message draft; must be non-zero. Changes to drafts
+                with the same identifier are animated. Otherwise, the draft is replaced without
+                animation.
+            rich_message: The partial message to be streamed. Direct upload of new files and
+                explicit upload of files by a URL isn't supported.
+            message_thread_id: Unique identifier for the target message thread
+            can_stop: Pass True to show the user a button to stop further drafts. The bot will
+                receive an Update “stopped_message_generation” if the user presses the button.
+            keep_on_stop: Pass True to keep the draft in the chat when the button is pressed. The
+                draft will still disappear after a short time or if the bot sends a message. To
+                fully preserve the partial draft, the bot should send it as a new message.
+
+        Returns:
+            bool: The API result.
+        """
+        data: JSONDict = {
+            "chat_id": chat_id,
+            "draft_id": draft_id,
+            "rich_message": rich_message,
+            "can_stop": can_stop,
+            "keep_on_stop": keep_on_stop,
+            "message_thread_id": message_thread_id,
+        }
+        return await self._post(
+            "sendRichMessageDraft",
+            data,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
+
+    async def answer_chat_join_request_query(
+        self,
+        chat_join_request_query_id: "str",
+        result: "str",
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> bool:
+        """Use this method to process a received chat join request query. Returns True on success.
+
+        See https://core.telegram.org/bots/api#answerchatjoinrequestquery for field constraints.
+
+        Args:
+            chat_join_request_query_id: Unique identifier of the join request query
+            result: Result of the query. Must be either “approve” to allow the user to join the
+                chat, “decline” to disallow the user to join the chat, or “queue” to leave the
+                decision to other administrators.
+
+        Returns:
+            bool: The API result.
+        """
+        data: JSONDict = {
+            "chat_join_request_query_id": chat_join_request_query_id,
+            "result": result,
+        }
+        return await self._post(
+            "answerChatJoinRequestQuery",
+            data,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
+
+    async def send_chat_join_request_web_app(
+        self,
+        chat_join_request_query_id: "str",
+        web_app_url: "str",
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> bool:
+        """Use this method to process a received chat join request query by showing a Mini App to
+        the user before deciding the outcome. Call answerChatJoinRequestQuery to
+        resolve the join request query based on the user interaction with the Mini App.
+        Returns True on success.
+
+        See https://core.telegram.org/bots/api#sendchatjoinrequestwebapp for field constraints.
+
+        Args:
+            chat_join_request_query_id: Unique identifier of the join request query
+            web_app_url: An HTTPS URL of a Web App to be opened with additional data as specified
+                in Initializing Web Apps
+
+        Returns:
+            bool: The API result.
+        """
+        data: JSONDict = {
+            "chat_join_request_query_id": chat_join_request_query_id,
+            "web_app_url": web_app_url,
+        }
+        return await self._post(
+            "sendChatJoinRequestWebApp",
+            data,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
+
+    async def edit_ephemeral_message_text(
+        self,
+        chat_id: "int | str",
+        receiver_user_id: "int",
+        ephemeral_message_id: "int",
+        text: "str | None" = None,
+        parse_mode: "ODVInput[str]" = DEFAULT_NONE,
+        entities: "Sequence[MessageEntity] | None" = None,
+        rich_message: "InputRichMessage | None" = None,
+        link_preview_options: "ODVInput[LinkPreviewOptions]" = DEFAULT_NONE,
+        reply_markup: "InlineKeyboardMarkup | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> bool:
+        """Use this method to edit an ephemeral text or rich message. Note that it is not
+        guaranteed that the user will receive the message edit event, especially if
+        they are offline. On success, True is returned.
+
+        See https://core.telegram.org/bots/api#editephemeralmessagetext for field constraints.
+
+        Args:
+            chat_id: Unique identifier for the target chat or username of the target supergroup in
+                the format @username
+            receiver_user_id: Identifier of the user who received the message
+            ephemeral_message_id: Identifier of the ephemeral message to edit
+            text: New text of the message, 1-4096 characters after entity parsing; required if
+                rich_message isn't specified
+            parse_mode: Mode for parsing entities in the message text. See formatting options for
+                more details.
+            entities: A JSON-serialized list of special entities that appear in message text, which
+                can be specified instead of parse_mode
+            rich_message: New rich content of the message; required if text isn't specified
+            link_preview_options: Link preview generation options for the message
+            reply_markup: A JSON-serialized object for an inline keyboard
+
+        Returns:
+            bool: The API result.
+        """
+        data: JSONDict = {
+            "chat_id": chat_id,
+            "receiver_user_id": receiver_user_id,
+            "ephemeral_message_id": ephemeral_message_id,
+            "text": text,
+            "entities": entities,
+            "rich_message": rich_message,
+        }
+        return await self._send_message(
+            "editEphemeralMessageText",
+            data,
+            parse_mode=None
+            if rich_message is not None and parse_mode is DEFAULT_NONE
+            else parse_mode,
+            link_preview_options=link_preview_options,
+            reply_markup=reply_markup,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
+
+    async def edit_ephemeral_message_media(
+        self,
+        chat_id: "int | str",
+        receiver_user_id: "int",
+        ephemeral_message_id: "int",
+        media: "InputMedia",
+        reply_markup: "InlineKeyboardMarkup | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> bool:
+        """Use this method to edit the media of an ephemeral message. Note that it is not
+        guaranteed that the user will receive the message edit event, especially if
+        they are offline. On success, True is returned.
+
+        See https://core.telegram.org/bots/api#editephemeralmessagemedia for field constraints.
+
+        Args:
+            chat_id: Unique identifier for the target chat or username of the target supergroup in
+                the format @username
+            receiver_user_id: Identifier of the user who received the message
+            ephemeral_message_id: Identifier of the ephemeral message to edit
+            media: A JSON-serialized object for the new media content of the message
+            reply_markup: A JSON-serialized object for an inline keyboard
+
+        Returns:
+            bool: The API result.
+        """
+        data: JSONDict = {
+            "chat_id": chat_id,
+            "receiver_user_id": receiver_user_id,
+            "ephemeral_message_id": ephemeral_message_id,
+            "media": media,
+        }
+        return await self._send_message(
+            "editEphemeralMessageMedia",
+            data,
+            reply_markup=reply_markup,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
+
+    async def edit_ephemeral_message_caption(
+        self,
+        chat_id: "int | str",
+        receiver_user_id: "int",
+        ephemeral_message_id: "int",
+        caption: "str | None" = None,
+        parse_mode: "ODVInput[str]" = DEFAULT_NONE,
+        caption_entities: "Sequence[MessageEntity] | None" = None,
+        show_caption_above_media: "bool | None" = None,
+        reply_markup: "InlineKeyboardMarkup | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> bool:
+        """Use this method to edit the caption of an ephemeral message. Note that it is not
+        guaranteed that the user will receive the message edit event, especially if
+        they are offline. On success, True is returned.
+
+        See https://core.telegram.org/bots/api#editephemeralmessagecaption for field constraints.
+
+        Args:
+            chat_id: Unique identifier for the target chat or username of the target supergroup in
+                the format @username
+            receiver_user_id: Identifier of the user who received the message
+            ephemeral_message_id: Identifier of the ephemeral message to edit
+            caption: New caption of the message, 0-1024 characters after entities parsing
+            parse_mode: Mode for parsing entities in the message caption. See formatting options
+                for more details.
+            caption_entities: A JSON-serialized list of special entities that appear in the
+                caption, which can be specified instead of parse_mode
+            show_caption_above_media: Pass True if the caption must be shown above the message
+                media. Supported only for animation, photo and video messages.
+            reply_markup: A JSON-serialized object for an inline keyboard
+
+        Returns:
+            bool: The API result.
+        """
+        data: JSONDict = {
+            "chat_id": chat_id,
+            "receiver_user_id": receiver_user_id,
+            "ephemeral_message_id": ephemeral_message_id,
+            "show_caption_above_media": show_caption_above_media,
+        }
+        return await self._send_message(
+            "editEphemeralMessageCaption",
+            data,
+            caption=caption,
+            parse_mode=parse_mode,
+            caption_entities=caption_entities,
+            reply_markup=reply_markup,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
+
+    async def edit_ephemeral_message_reply_markup(
+        self,
+        chat_id: "int | str",
+        receiver_user_id: "int",
+        ephemeral_message_id: "int",
+        reply_markup: "InlineKeyboardMarkup | None" = None,
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> bool:
+        """Use this method to edit only the reply markup of an ephemeral message. Note that it is
+        not guaranteed that the user will receive the message edit event, especially if
+        they are offline. On success, True is returned.
+
+        See https://core.telegram.org/bots/api#editephemeralmessagereplymarkup for field
+            constraints.
+
+        Args:
+            chat_id: Unique identifier for the target chat or username of the target supergroup in
+                the format @username
+            receiver_user_id: Identifier of the user who received the message
+            ephemeral_message_id: Identifier of the ephemeral message to edit
+            reply_markup: A JSON-serialized object for an inline keyboard
+
+        Returns:
+            bool: The API result.
+        """
+        data: JSONDict = {
+            "chat_id": chat_id,
+            "receiver_user_id": receiver_user_id,
+            "ephemeral_message_id": ephemeral_message_id,
+        }
+        return await self._send_message(
+            "editEphemeralMessageReplyMarkup",
+            data,
+            reply_markup=reply_markup,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
+
+    async def delete_ephemeral_message(
+        self,
+        chat_id: "int | str",
+        receiver_user_id: "int",
+        ephemeral_message_id: "int",
+        *,
+        read_timeout: ODVInput[float] = DEFAULT_NONE,
+        write_timeout: ODVInput[float] = DEFAULT_NONE,
+        connect_timeout: ODVInput[float] = DEFAULT_NONE,
+        pool_timeout: ODVInput[float] = DEFAULT_NONE,
+        api_kwargs: JSONDict | None = None,
+    ) -> bool:
+        """Use this method to delete an ephemeral message. Note that it is not guaranteed that the
+        user will receive the message deletion event, especially if they are offline.
+        Returns True on success.
+
+        See https://core.telegram.org/bots/api#deleteephemeralmessage for field constraints.
+
+        Args:
+            chat_id: Unique identifier for the target chat or username of the target supergroup in
+                the format @username
+            receiver_user_id: Identifier of the user who received the message
+            ephemeral_message_id: Identifier of the ephemeral message to delete
+
+        Returns:
+            bool: The API result.
+        """
+        data: JSONDict = {
+            "chat_id": chat_id,
+            "receiver_user_id": receiver_user_id,
+            "ephemeral_message_id": ephemeral_message_id,
+        }
+        return await self._post(
+            "deleteEphemeralMessage",
+            data,
+            read_timeout=read_timeout,
+            write_timeout=write_timeout,
+            connect_timeout=connect_timeout,
+            pool_timeout=pool_timeout,
+            api_kwargs=api_kwargs,
+        )
 
     async def __aenter__(self) -> Self:
         """
@@ -732,6 +1223,16 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             parameters=[RequestParameter.from_input(key, value) for key, value in data.items()],
         )
 
+        if request_data.multipart_data and (
+            endpoint == "sendRichMessageDraft"
+            or (
+                endpoint == "editMessageText"
+                and data.get("inline_message_id")
+                and data.get("rich_message")
+            )
+        ):
+            raise ValueError("New file uploads are not supported for rich drafts or inline edits.")
+
         request = self._request[0] if endpoint == "getUpdates" else self._request[1]
 
         self._LOGGER.debug("Calling Bot API endpoint `%s` with parameters `%s`", endpoint, data)
@@ -1028,6 +1529,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         disable_web_page_preview: bool | None = None,
@@ -1040,6 +1542,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         """Use this method to send text messages.
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             text (:obj:`str`): Text of the message to be sent. Max
                 :tg-const:`telegram.constants.MessageLimit.MAX_TEXT_LENGTH` characters after
@@ -1130,6 +1635,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
 
         """
         data: JSONDict = {"chat_id": chat_id, "text": text, "entities": entities}
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
         link_preview_options = parse_lpo_and_dwpp(disable_web_page_preview, link_preview_options)
 
         return await self._send_message(
@@ -1218,6 +1724,8 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         message_thread_id: int | None = None,
         parse_mode: ODVInput[str] = DEFAULT_NONE,
         entities: Sequence["MessageEntity"] | None = None,
+        can_stop: bool | None = None,
+        keep_on_stop: bool | None = None,
         *,
         read_timeout: ODVInput[float] = DEFAULT_NONE,
         write_timeout: ODVInput[float] = DEFAULT_NONE,
@@ -1256,6 +1764,11 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
 
                     |sequenceargs|
 
+            can_stop (:obj:`bool`, optional): Show a button that lets the user stop drafts.
+                Pressing it produces a ``stopped_message_generation`` update.
+            keep_on_stop (:obj:`bool`, optional): Keep the stopped draft temporarily.
+                Send a regular message to preserve its content permanently.
+
         Returns:
             :obj:`bool`: On success, :obj:`True` is returned.
         """
@@ -1264,6 +1777,8 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "draft_id": draft_id,
             "text": text,
             "entities": entities,
+            "can_stop": can_stop,
+            "keep_on_stop": keep_on_stop,
         }
         return await self._send_message(
             "sendMessageDraft",
@@ -1490,6 +2005,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         filename: str | None = None,
@@ -1504,6 +2020,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         .. seealso:: :wiki:`Working with Files and Media <Working-with-Files-and-Media>`
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             photo (:obj:`str` | :term:`file object` | :class:`~telegram.InputFile` | :obj:`bytes` \
                 | :class:`pathlib.Path` | :class:`telegram.PhotoSize`): Photo to send.
@@ -1604,6 +2123,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "has_spoiler": has_spoiler,
             "show_caption_above_media": show_caption_above_media,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
 
         return await self._send_message(
             "sendPhoto",
@@ -1652,6 +2172,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         filename: str | None = None,
@@ -1677,6 +2198,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             |removed_thumb_arg|
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             audio (:obj:`str` | :term:`file object` | :class:`~telegram.InputFile` | \
                 :obj:`bytes` | :class:`pathlib.Path` | :class:`telegram.Audio`): Audio file to
@@ -1778,6 +2302,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "title": title,
             "thumbnail": self._parse_file_input(thumbnail, attach=True) if thumbnail else None,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
 
         return await self._send_message(
             "sendAudio",
@@ -1824,6 +2349,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         filename: str | None = None,
@@ -1846,6 +2372,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             |removed_thumb_arg|
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             document (:obj:`str` | :term:`file object` | :class:`~telegram.InputFile` | \
                 :obj:`bytes` | :class:`pathlib.Path` | :class:`telegram.Document`): File to send.
@@ -1941,6 +2470,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "disable_content_type_detection": disable_content_type_detection,
             "thumbnail": self._parse_file_input(thumbnail, attach=True) if thumbnail else None,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
 
         return await self._send_message(
             "sendDocument",
@@ -1983,6 +2513,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         read_timeout: ODVInput[float] = DEFAULT_NONE,
@@ -1997,6 +2528,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         .. seealso:: :wiki:`Working with Files and Media <Working-with-Files-and-Media>`
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             sticker (:obj:`str` | :term:`file object` | :class:`~telegram.InputFile` | \
                 :obj:`bytes` | :class:`pathlib.Path` | :class:`telegram.Sticker`): Sticker to send.
@@ -2075,6 +2609,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "sticker": self._parse_file_input(sticker, Sticker),
             "emoji": emoji,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
         return await self._send_message(
             "sendSticker",
             data,
@@ -2124,6 +2659,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         filename: str | None = None,
@@ -2151,6 +2687,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             |removed_thumb_arg|
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             video (:obj:`str` | :term:`file object` | :class:`~telegram.InputFile` | :obj:`bytes` \
                 | :class:`pathlib.Path` | :class:`telegram.Video`): Video file to send.
@@ -2272,6 +2811,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "has_spoiler": has_spoiler,
             "show_caption_above_media": show_caption_above_media,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
 
         return await self._send_message(
             "sendVideo",
@@ -2316,6 +2856,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         filename: str | None = None,
@@ -2340,6 +2881,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             |removed_thumb_arg|
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             video_note (:obj:`str` | :term:`file object` | :class:`~telegram.InputFile` | \
                 :obj:`bytes` | :class:`pathlib.Path` | :class:`telegram.VideoNote`): Video note
@@ -2434,6 +2978,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "length": length,
             "thumbnail": self._parse_file_input(thumbnail, attach=True) if thumbnail else None,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
 
         return await self._send_message(
             "sendVideoNote",
@@ -2481,6 +3026,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         filename: str | None = None,
@@ -2507,6 +3053,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             |removed_thumb_arg|
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             animation (:obj:`str` | :term:`file object` | :class:`~telegram.InputFile` | \
                 :obj:`bytes` | :class:`pathlib.Path` | :class:`telegram.Animation`): Animation to
@@ -2613,6 +3162,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "has_spoiler": has_spoiler,
             "show_caption_above_media": show_caption_above_media,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
 
         return await self._send_message(
             "sendAnimation",
@@ -2658,6 +3208,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         filename: str | None = None,
@@ -2685,6 +3236,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         .. seealso:: :wiki:`Working with Files and Media <Working-with-Files-and-Media>`
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             voice (:obj:`str` | :term:`file object` | :class:`~telegram.InputFile` | :obj:`bytes` \
                 | :class:`pathlib.Path` | :class:`telegram.Voice`): Voice file to send.
@@ -2776,6 +3330,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "voice": self._parse_file_input(voice, Voice, filename=filename),
             "duration": duration,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
 
         return await self._send_message(
             "sendVoice",
@@ -3005,6 +3560,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         location: "Location | None" = None,
@@ -3021,6 +3577,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             :paramref:`location`.
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             latitude (:obj:`float`, optional): Latitude of location.
             longitude (:obj:`float`, optional): Longitude of location.
@@ -3125,6 +3684,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "heading": heading,
             "proximity_alert_radius": proximity_alert_radius,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
 
         return await self._send_message(
             "sendLocation",
@@ -3336,6 +3896,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         venue: "Venue | None" = None,
@@ -3356,6 +3917,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
               behaviour is undocumented and might be changed by Telegram.
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             latitude (:obj:`float`, optional): Latitude of venue.
             longitude (:obj:`float`, optional): Longitude of venue.
@@ -3459,6 +4023,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "google_place_id": google_place_id,
             "google_place_type": google_place_type,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
 
         return await self._send_message(
             "sendVenue",
@@ -3500,6 +4065,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         direct_messages_topic_id: int | None = None,
         suggested_post_parameters: "SuggestedPostParameters | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         contact: "Contact | None" = None,
@@ -3517,6 +4083,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             :paramref:`vcard`.
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             phone_number (:obj:`str`, optional): Contact's phone number.
             first_name (:obj:`str`, optional): Contact's first name.
@@ -3604,6 +4173,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "last_name": last_name,
             "vcard": vcard,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
 
         return await self._send_message(
             "sendContact",
@@ -4368,7 +4938,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
 
     async def edit_message_text(
         self,
-        text: str,
+        text: str | None = None,
         chat_id: str | int | None = None,
         message_id: int | None = None,
         inline_message_id: str | None = None,
@@ -4378,6 +4948,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         link_preview_options: ODVInput["LinkPreviewOptions"] = DEFAULT_NONE,
         business_connection_id: str | None = None,
         *,
+        rich_message: "InputRichMessage | None" = None,
         disable_web_page_preview: bool | None = None,
         read_timeout: ODVInput[float] = DEFAULT_NONE,
         write_timeout: ODVInput[float] = DEFAULT_NONE,
@@ -4395,6 +4966,8 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         .. seealso:: :attr:`telegram.Game.text`
 
         Args:
+            rich_message (:class:`telegram.InputRichMessage`, optional): Rich content to send
+                instead of text. Direct uploads are unavailable for inline edits.
             chat_id (:obj:`int` | :obj:`str`, optional): Required if :paramref:`inline_message_id`
                 is not specified. |chat_id_channel|
             message_id (:obj:`int`, optional): Required if :paramref:`inline_message_id` is not
@@ -4456,6 +5029,9 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "inline_message_id": inline_message_id,
             "entities": entities,
         }
+        data["rich_message"] = rich_message
+        if rich_message is not None and parse_mode is DEFAULT_NONE:
+            parse_mode = None
 
         link_preview_options = parse_lpo_and_dwpp(disable_web_page_preview, link_preview_options)
 
@@ -5836,6 +6412,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
         can_manage_direct_messages: bool | None = None,
         can_manage_tags: bool | None = None,
         *,
+        can_send_welcome_messages: "bool | None" = None,
         read_timeout: ODVInput[float] = DEFAULT_NONE,
         write_timeout: ODVInput[float] = DEFAULT_NONE,
         connect_timeout: ODVInput[float] = DEFAULT_NONE,
@@ -5852,6 +6429,8 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
            :paramref:`can_manage_video_chats` in accordance to Bot API 6.0.
 
         Args:
+            can_send_welcome_messages (:obj:`bool`, optional): Whether the administrator may send
+                welcome messages.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             user_id (:obj:`int`): Unique identifier of the target user.
             is_anonymous (:obj:`bool`, optional): Pass :obj:`True`, if the administrator's presence
@@ -5938,6 +6517,7 @@ class Bot(TelegramObject, contextlib.AbstractAsyncContextManager["Bot"]):
             "can_manage_direct_messages": can_manage_direct_messages,
             "can_manage_tags": can_manage_tags,
         }
+        data["can_send_welcome_messages"] = can_send_welcome_messages
 
         return await self._post(
             "promoteChatMember",
@@ -11932,6 +12512,7 @@ CHAT_ACTIVITY_TIMEOUT` seconds.
         reply_parameters: "ReplyParameters | None" = None,
         reply_markup: "ReplyMarkup | None" = None,
         *,
+        ephemeral_message_parameters: "EphemeralMessageParameters | None" = None,
         allow_sending_without_reply: ODVInput[bool] = DEFAULT_NONE,
         reply_to_message_id: int | None = None,
         filename: str | None = None,
@@ -11949,6 +12530,9 @@ CHAT_ACTIVITY_TIMEOUT` seconds.
         .. versionadded:: 22.8
 
         Args:
+            ephemeral_message_parameters (:class:`telegram.EphemeralMessageParameters`, optional):
+                Parameters for an ephemeral message. Group delivery requires an eligible user
+                action or administrator rights.
             chat_id (:obj:`int` | :obj:`str`): |chat_id_channel|
             live_photo (:obj:`str` | :term:`file object` | :class:`~telegram.InputFile` | \
                 :obj:`bytes` | :class:`pathlib.Path` | :class:`telegram.LivePhoto`): Live photo
@@ -11961,8 +12545,8 @@ CHAT_ACTIVITY_TIMEOUT` seconds.
                    * The video must be at most 10MB in size.
                    * The video duration must not exceed 10 seconds.
                    * If you pass a :class:`telegram.LivePhoto`, its
-                   :attr:`~telegram.LivePhoto.photo` field will not be considered, use
-                   :paramref:`photo` to specify the photo to send.
+                     :attr:`~telegram.LivePhoto.photo` field will not be considered, use
+                     :paramref:`photo` to specify the photo to send.
 
             photo (:obj:`str` | :term:`file object` | :class:`~telegram.InputFile` | :obj:`bytes` \
                 | :class:`pathlib.Path` | :class:`telegram.PhotoSize`): The static photo to send.
@@ -12017,6 +12601,7 @@ CHAT_ACTIVITY_TIMEOUT` seconds.
             "has_spoiler": has_spoiler,
             "show_caption_above_media": show_caption_above_media,
         }
+        data["ephemeral_message_parameters"] = ephemeral_message_parameters
 
         return await self._send_message(
             "sendLivePhoto",
@@ -12151,6 +12736,16 @@ CHAT_ACTIVITY_TIMEOUT` seconds.
     sendMessage = send_message
     """Alias for :meth:`send_message`"""
     sendMessageDraft = send_message_draft
+    sendRichMessage = send_rich_message
+    sendRichMessageDraft = send_rich_message_draft
+    answerChatJoinRequestQuery = answer_chat_join_request_query
+    sendChatJoinRequestWebApp = send_chat_join_request_web_app
+    editEphemeralMessageText = edit_ephemeral_message_text
+    editEphemeralMessageMedia = edit_ephemeral_message_media
+    editEphemeralMessageCaption = edit_ephemeral_message_caption
+    editEphemeralMessageReplyMarkup = edit_ephemeral_message_reply_markup
+    deleteEphemeralMessage = delete_ephemeral_message
+
     """Alias for :meth:`send_message_draft`"""
     deleteMessage = delete_message
     """Alias for :meth:`delete_message`"""

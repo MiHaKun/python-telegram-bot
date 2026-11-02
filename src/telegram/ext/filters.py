@@ -71,6 +71,7 @@ __all__ = (
     "PREMIUM_USER",
     "REPLY",
     "REPLY_TO_STORY",
+    "RICH_MESSAGE",
     "SENDER_BOOST_COUNT",
     "STORY",
     "SUCCESSFUL_PAYMENT",
@@ -1962,6 +1963,17 @@ class SenderChat(_ChatUserBaseFilter):
         return super()._remove_chat_ids(chat_id)
 
 
+class _RichMessage(MessageFilter):
+    __slots__ = ()
+
+    def filter(self, message: Message) -> bool:
+        return message.rich_message is not None
+
+
+RICH_MESSAGE = _RichMessage(name="filters.RICH_MESSAGE")
+"""Messages containing :attr:`telegram.Message.rich_message`."""
+
+
 class StatusUpdate:
     """Subset for messages containing a status update.
 
@@ -1991,6 +2003,9 @@ class StatusUpdate:
                 or StatusUpdate.CHAT_SHARED.check_update(update)
                 or StatusUpdate.CHECKLIST_TASKS_ADDED.check_update(update)
                 or StatusUpdate.CHECKLIST_TASKS_DONE.check_update(update)
+                or StatusUpdate.COMMUNITY_CHAT_ADDED.check_update(update)
+                or StatusUpdate.COMMUNITY_CHAT_JOINED.check_update(update)
+                or StatusUpdate.COMMUNITY_CHAT_REMOVED.check_update(update)
                 or StatusUpdate.CONNECTED_WEBSITE.check_update(update)
                 or StatusUpdate.DIRECT_MESSAGE_PRICE_CHANGED.check_update(update)
                 or StatusUpdate.DELETE_CHAT_PHOTO.check_update(update)
@@ -2034,6 +2049,35 @@ class StatusUpdate:
 
     ALL = _All(name="filters.StatusUpdate.ALL")
     """Messages that contain any of the below."""
+
+    class _CommunityChatAdded(MessageFilter):
+        __slots__ = ()
+
+        def filter(self, message: Message) -> bool:
+            return message.community_chat_added is not None
+
+    COMMUNITY_CHAT_ADDED = _CommunityChatAdded(name="filters.StatusUpdate.COMMUNITY_CHAT_ADDED")
+    """Messages containing :attr:`telegram.Message.community_chat_added`."""
+
+    class _CommunityChatJoined(MessageFilter):
+        __slots__ = ()
+
+        def filter(self, message: Message) -> bool:
+            return message.community_chat_joined is not None
+
+    COMMUNITY_CHAT_JOINED = _CommunityChatJoined(name="filters.StatusUpdate.COMMUNITY_CHAT_JOINED")
+    """Messages containing :attr:`telegram.Message.community_chat_joined`."""
+
+    class _CommunityChatRemoved(MessageFilter):
+        __slots__ = ()
+
+        def filter(self, message: Message) -> bool:
+            return message.community_chat_removed is not None
+
+    COMMUNITY_CHAT_REMOVED = _CommunityChatRemoved(
+        name="filters.StatusUpdate.COMMUNITY_CHAT_REMOVED"
+    )
+    """Messages containing :attr:`telegram.Message.community_chat_removed`."""
 
     class _ChatBackgroundSet(MessageFilter):
         __slots__ = ()

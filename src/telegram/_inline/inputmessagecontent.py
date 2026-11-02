@@ -18,8 +18,13 @@
 # along with this program.  If not, see [http://www.gnu.org/licenses/].
 """This module contains the classes that represent Telegram InputMessageContent."""
 
+from typing import TYPE_CHECKING, Self, cast
+
 from telegram._telegramobject import TelegramObject
 from telegram._utils.types import JSONDict
+
+if TYPE_CHECKING:
+    from telegram import Bot
 
 
 class InputMessageContent(TelegramObject):
@@ -38,3 +43,12 @@ class InputMessageContent(TelegramObject):
         super().__init__(api_kwargs=api_kwargs)
 
         self._freeze()
+
+    @classmethod
+    def de_json(cls, data: JSONDict, bot: "Bot | None" = None) -> Self:
+        """Parse rich content before falling back to the base content model."""
+        if cls is InputMessageContent and data and "rich_message" in data:
+            from telegram._botapi103 import InputRichMessageContent  # noqa: PLC0415 - import cycle
+
+            return cast("Self", InputRichMessageContent.de_json(data, bot))
+        return super().de_json(data, bot)

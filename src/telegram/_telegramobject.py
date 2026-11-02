@@ -850,6 +850,7 @@ _TIME_PERIOD_DEPRECATIONS: dict[str, tuple[str, ...]] = {
     "InputMediaVideo": ("_duration",),
     "InputMediaAnimation": ("_duration",),
     "InputMediaAudio": ("_duration",),
+    "InputMediaVoiceNote": ("_duration",),
     "InputPaidMediaVideo": ("_duration",),
     "InlineQueryResultGif": ("_gif_duration",),
     "InlineQueryResultMpeg4Gif": ("_mpeg4_duration",),

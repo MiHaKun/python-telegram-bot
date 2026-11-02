@@ -45,6 +45,10 @@ if TYPE_CHECKING:
     from telegram._utils.types import ReplyMarkup
 
 
+if TYPE_CHECKING:
+    from telegram import InputRichMessage
+
+
 class CallbackQuery(TelegramObject):
     """
     This object represents an incoming callback query from a callback button in an inline keyboard.
@@ -198,12 +202,13 @@ class CallbackQuery(TelegramObject):
 
     async def edit_message_text(
         self,
-        text: str,
+        text: str | None = None,
         parse_mode: ODVInput[str] = DEFAULT_NONE,
         reply_markup: "InlineKeyboardMarkup | None" = None,
         entities: Sequence["MessageEntity"] | None = None,
         link_preview_options: ODVInput["LinkPreviewOptions"] = DEFAULT_NONE,
         *,
+        rich_message: "InputRichMessage | None" = None,
         disable_web_page_preview: bool | None = None,
         read_timeout: ODVInput[float] = DEFAULT_NONE,
         write_timeout: ODVInput[float] = DEFAULT_NONE,
@@ -253,6 +258,7 @@ class CallbackQuery(TelegramObject):
                 message_id=None,
                 # inline messages can not be sent on behalf of a bcid
                 business_connection_id=None,
+                rich_message=rich_message,
             )
         return await self._get_message().edit_text(
             text=text,
@@ -266,6 +272,7 @@ class CallbackQuery(TelegramObject):
             pool_timeout=pool_timeout,
             api_kwargs=api_kwargs,
             entities=entities,
+            rich_message=rich_message,
         )
 
     async def edit_message_caption(

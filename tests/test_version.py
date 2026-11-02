@@ -16,7 +16,11 @@
 #
 # You should have received a copy of the GNU Lesser Public License
 # along with this program.  If not, see [http://www.gnu.org/licenses/].
+from pathlib import Path
+
 import pytest
+from packaging.requirements import Requirement
+from packaging.version import Version as PackagingVersion
 
 from telegram import (
     __bot_api_version__,
@@ -34,7 +38,28 @@ class TestVersion:
         assert __bot_api_version_info__ is constants.BOT_API_VERSION_INFO
 
     def test_version_and_info(self):
-        assert __version__ == str(__version_info__)
+        version = PackagingVersion(__version__)
+        assert version.public == str(__version_info__)
+        assert version.local.startswith(f"botapi{__bot_api_version__}.")
+        assert len(__version_info__) == 5
+
+    def test_local_constraint_prevents_upstream_replacement(self):
+        constraint = Path(__file__).resolve().parents[1] / "constraints-local.txt"
+        requirements = [
+            Requirement(line)
+            for line in constraint.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+        assert len(requirements) == 1
+        requirement = requirements[0]
+        assert requirement.name == "python-telegram-bot"
+        current = PackagingVersion(__version__)
+        next_upstream = f"{current.major}.{current.minor + 1}"
+        assert current in requirement.specifier
+        assert current.public not in requirement.specifier
+        assert next_upstream not in requirement.specifier
+        # Local labels distinguish same-base builds, but a newer public release still sorts later.
+        assert PackagingVersion(current.public) < current < PackagingVersion(next_upstream)
 
     @pytest.mark.parametrize(
         ("version", "expected"),

@@ -184,7 +184,7 @@ class _AccentColor(NamedTuple):
 #: :data:`telegram.__bot_api_version_info__`.
 #:
 #: .. versionadded:: 20.0
-BOT_API_VERSION_INFO: Final[_BotAPIVersion] = _BotAPIVersion(major=10, minor=0)
+BOT_API_VERSION_INFO: Final[_BotAPIVersion] = _BotAPIVersion(major=10, minor=3)
 #: :obj:`str`: Telegram Bot API
 #: version supported by this version of `python-telegram-bot`. Also available as
 #: :data:`telegram.__bot_api_version__`.
@@ -1532,6 +1532,11 @@ class BaseInputMediaType(StringEnum):
 
     __slots__ = ()
 
+    LINK = "link"
+    """Bot API 10.1-10.3 value ``link``."""
+    VOICE_NOTE = "voice_note"
+    """Bot API 10.1-10.3 value ``voice_note``."""
+
     ANIMATION = "animation"
     """:obj:`str`: Type of :class:`telegram.InputMediaAnimation`."""
     DOCUMENT = "document"
@@ -1994,6 +1999,9 @@ class MessageAttachmentType(StringEnum):
 
     __slots__ = ()
 
+    RICH_MESSAGE = "rich_message"
+    """Bot API 10.1-10.3 value ``rich_message``."""
+
     # Make sure that all constants here are also listed in the MessageType Enum!
     # (Enums are not extendable)
 
@@ -2256,6 +2264,15 @@ class MessageType(StringEnum):
     """
 
     __slots__ = ()
+
+    RICH_MESSAGE = "rich_message"
+    """Bot API 10.1-10.3 value ``rich_message``."""
+    COMMUNITY_CHAT_ADDED = "community_chat_added"
+    """Bot API 10.1-10.3 value ``community_chat_added``."""
+    COMMUNITY_CHAT_JOINED = "community_chat_joined"
+    """Bot API 10.1-10.3 value ``community_chat_joined``."""
+    COMMUNITY_CHAT_REMOVED = "community_chat_removed"
+    """Bot API 10.1-10.3 value ``community_chat_removed``."""
 
     # Make sure that all attachment type constants are also listed in the
     # MessageAttachmentType Enum! (Enums are not extendable)
@@ -3726,6 +3743,12 @@ class UpdateType(StringEnum):
 
     .. versionadded:: 22.8
     """
+
+    SUBSCRIPTION = "subscription"
+    """:obj:`str`: Subscription state updates."""
+
+    STOPPED_MESSAGE_GENERATION = "stopped_message_generation"
+    """:obj:`str`: Updates with :attr:`telegram.Update.stopped_message_generation`."""
 
 
 class InvoiceLimit(IntEnum):
